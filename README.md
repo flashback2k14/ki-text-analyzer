@@ -46,6 +46,8 @@ npm run fixtures    # Test-Dokumente unter tests/fixtures neu erzeugen
 npm run build && npm start
 ```
 
+ESLint läuft in Version 10. Weil `eslint-config-next` noch Plugins bündelt, die nur ESLint 9 als Peer angeben, meldet `npm install` dafür Peer-Warnungen; die Konfiguration gleicht das über `@eslint/compat` aus. Die Warnungen verschwinden, sobald Next die Plugins aktualisiert.
+
 ## Mit Docker Compose betreiben
 
 ```bash
