@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Category, Finding } from "@/lib/analysis/types";
 import type { AnalyzeResponse, ApiError, SuggestResponse } from "@/lib/client-types";
@@ -11,7 +12,11 @@ import { UploadDropzone } from "./UploadDropzone";
 
 type LlmState = "idle" | "loading" | "done" | "error";
 
-async function readError(res: Response, fallback: string): Promise<string> {
+async function readError(res: Response, fallback: string, onUnauthorized: () => void): Promise<string> {
+  if (res.status === 401) {
+    onUnauthorized();
+    return "Die Sitzung ist abgelaufen. Bitte erneut anmelden.";
+  }
   try {
     const body = (await res.json()) as ApiError;
     return body.error || fallback;
@@ -21,6 +26,8 @@ async function readError(res: Response, fallback: string): Promise<string> {
 }
 
 export function Analyzer() {
+  const router = useRouter();
+  const toLogin = useCallback(() => router.push("/anmelden?next=/"), [router]);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
@@ -42,7 +49,7 @@ export function Analyzer() {
       const form = new FormData();
       form.append("file", f);
       const res = await fetch("/api/analyze", { method: "POST", body: form });
-      if (!res.ok) throw new Error(await readError(res, `Analyse fehlgeschlagen (Status ${res.status}).`));
+      if (!res.ok) throw new Error(await readError(res, `Analyse fehlgeschlagen (Status ${res.status}).`, toLogin));
       const data = (await res.json()) as AnalyzeResponse;
       setFile(f);
       setResult(data);
@@ -59,7 +66,7 @@ export function Analyzer() {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [toLogin]);
 
   const reset = () => {
     setFile(null);
@@ -129,7 +136,7 @@ export function Analyzer() {
         assess: true,
       };
       const res = await fetch("/api/suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error(await readError(res, `Anfrage an das Sprachmodell fehlgeschlagen (Status ${res.status}).`));
+      if (!res.ok) throw new Error(await readError(res, `Anfrage an das Sprachmodell fehlgeschlagen (Status ${res.status}).`, toLogin));
       const data = (await res.json()) as SuggestResponse;
       setFindings((prev) =>
         prev.map((f) => {
@@ -182,7 +189,7 @@ export function Analyzer() {
         }),
       );
       const res = await fetch("/api/export", { method: "POST", body: form });
-      if (!res.ok) throw new Error(await readError(res, `Export fehlgeschlagen (Status ${res.status}).`));
+      if (!res.ok) throw new Error(await readError(res, `Export fehlgeschlagen (Status ${res.status}).`, toLogin));
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
