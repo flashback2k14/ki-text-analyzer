@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f7f5;
+  --foreground: #1c1c1a;
+  --surface: #ffffff;
+  --border: #e2e2dd;
+  --muted: #6b6b66;
+  --accent: #2563eb;
+
+  --cat-bedeutung: #fde68a;
+  --cat-werbung: #fbcfe8;
+  --cat-redaktionell: #bfdbfe;
+  --cat-autoritaet: #c7d2fe;
+  --cat-modewort: #d9f99d;
+  --cat-satzbau: #fed7aa;
+  --cat-struktur: #fecaca;
+  --cat-formatierung: #a5f3fc;
+  --cat-artefakt: #f5d0fe;
+  --cat-dialog: #fca5a5;
+  --mark-text: #1c1c1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121212;
+    --foreground: #ececea;
+    --surface: #1c1c1c;
+    --border: #2e2e2e;
+    --muted: #a3a39d;
+    --accent: #60a5fa;
+
+    --cat-bedeutung: #713f12;
+    --cat-werbung: #831843;
+    --cat-redaktionell: #1e3a8a;
+    --cat-autoritaet: #312e81;
+    --cat-modewort: #365314;
+    --cat-satzbau: #7c2d12;
+    --cat-struktur: #7f1d1d;
+    --cat-formatierung: #164e63;
+    --cat-artefakt: #701a75;
+    --cat-dialog: #991b1b;
+    --mark-text: #ececea;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+mark.finding {
+  background: var(--mark-bg);
+  color: var(--mark-text);
+  border-radius: 3px;
+  padding: 0 1px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mark-bg) 60%, var(--foreground) 40%);
+  transition: box-shadow 120ms ease;
+}
+
+mark.finding:hover,
+mark.finding:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
+}
+
+mark.finding.selected {
+  box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+}
