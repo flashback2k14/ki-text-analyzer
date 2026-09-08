@@ -4,6 +4,7 @@ import { getCurrentUser, readUserApiKey } from "@/lib/auth/dal";
 import { resolveModel } from "@/lib/llm/models";
 import { hasEnvCredentials } from "@/lib/llm/client";
 import { ApiKeyForm } from "./ApiKeyForm";
+import { CostsSection } from "./CostsSection";
 import { ModelForm } from "./ModelForm";
 import { PasswordForm } from "./PasswordForm";
 
@@ -38,9 +39,11 @@ export default async function KontoPage() {
         <h2 id="model-heading" className="text-lg font-semibold">
           KI-Modell
         </h2>
-        <p className="mt-1 text-sm text-muted">Welches Claude-Modell die Alternativen und die Einschätzung erzeugt. Ohne Auswahl gilt die Server-Vorgabe.</p>
+        <p className="mt-1 text-sm text-muted">Welches Claude-Modell die Alternativen und die Einschätzung erzeugt. Ohne Auswahl gilt die Server-Vorgabe. Die Auswahl ist zugleich die Vorbelegung im Dialog vor jedem Claude-Aufruf; dort lässt sich das Modell für einen einzelnen Durchlauf ändern.</p>
         <ModelForm currentModel={user.model} serverDefault={serverDefaultModel} />
       </section>
+
+      <CostsSection userId={user.id} />
 
       <section aria-labelledby="password-heading" className="rounded-xl border border-border bg-surface p-5">
         <h2 id="password-heading" className="text-lg font-semibold">

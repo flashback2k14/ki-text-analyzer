@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { priceSeedSql } from "./costs/seed";
 import { getDataDir } from "./env";
 
 const MIGRATIONS: string[] = [
@@ -22,6 +23,39 @@ const MIGRATIONS: string[] = [
     created_at INTEGER NOT NULL
   );
   CREATE INDEX IF NOT EXISTS sessions_user_id ON sessions(user_id);
+  `,
+  `
+  CREATE TABLE IF NOT EXISTS model_prices (
+    model                    TEXT PRIMARY KEY,
+    label                    TEXT NOT NULL,
+    input_usd_per_mtok       REAL NOT NULL,
+    output_usd_per_mtok      REAL NOT NULL,
+    cache_write_usd_per_mtok REAL NOT NULL,
+    cache_read_usd_per_mtok  REAL NOT NULL,
+    updated_at               INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS llm_usage (
+    id                 TEXT PRIMARY KEY,
+    user_id            TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at         INTEGER NOT NULL,
+    model              TEXT NOT NULL,
+    purpose            TEXT NOT NULL,
+    requests           INTEGER NOT NULL,
+    input_tokens       INTEGER NOT NULL,
+    output_tokens      INTEGER NOT NULL,
+    cache_write_tokens INTEGER NOT NULL,
+    cache_read_tokens  INTEGER NOT NULL,
+    cost_usd           REAL,
+    file_name          TEXT
+  );
+  CREATE INDEX IF NOT EXISTS llm_usage_user_created ON llm_usage(user_id, created_at);
+  CREATE TABLE IF NOT EXISTS exchange_rates (
+    currency   TEXT PRIMARY KEY,
+    rate       REAL NOT NULL,
+    fetched_at INTEGER NOT NULL,
+    source     TEXT NOT NULL
+  );
+  ${priceSeedSql()}
   `,
 ];
 

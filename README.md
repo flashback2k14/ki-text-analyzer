@@ -24,6 +24,22 @@ Die Erkennung ist zweistufig:
 
 Der Export erzeugt eine Kopie der Originaldatei, in der jede Fundstelle als Word-Kommentar am betroffenen Text hängt. Am ersten Absatz steht zusätzlich ein Kommentar mit Score und Statistik.
 
+## Kosten
+
+Vor jedem Claude-Aufruf öffnet sich ein Dialog. Er ist mit dem Modell aus den Konto-Einstellungen vorbelegt, erlaubt für diesen Durchlauf ein anderes Modell (auch eine frei eingetragene Modell-ID) und zeigt eine Kostenschätzung aus der Textlänge. Nach dem Aufruf werden die tatsächlichen Token aus der API-Antwort gebucht.
+
+- Gespeichert wird je Durchlauf und Zweck (Alternativen, Einschätzung) in der Tabelle `llm_usage`: Modell, Anzahl der Anfragen, Eingabe-, Ausgabe- und Cache-Token, Kosten in **US-Dollar**, Dateiname.
+- Die Preise je 1 Mio. Token liegen in der Tabelle `model_prices`. Beim ersten Start werden die bekannten Claude-Modelle eingetragen (Stand Juni 2026). Ein neues Modell bekommt eine Zeile per SQL, z. B. mit `sqlite3 data/app.db`:
+  ```sql
+  INSERT INTO model_prices (model, label, input_usd_per_mtok, output_usd_per_mtok, cache_write_usd_per_mtok, cache_read_usd_per_mtok, updated_at)
+  VALUES ('claude-beispiel-6', 'Claude Beispiel 6', 4, 20, 5, 0.4, strftime('%s','now') * 1000);
+  ```
+  Vorhandene Zeilen lassen sich mit `UPDATE` anpassen; die Startwerte überschreiben sie nicht. Für ein Modell ohne Preiszeile werden die Token erfasst, der Betrag bleibt leer.
+- Angezeigt wird in **Euro**. Der Kurs ist der EZB-Referenzkurs, den der Server einmal täglich von `ecb.europa.eu` holt und in `exchange_rates` ablegt. Ist der Abruf nicht möglich, gilt der zuletzt gespeicherte Kurs, sonst `USD_EUR_RATE` aus der `.env`, sonst werden die Beträge in USD gezeigt.
+- Im Konto stehen die Kosten nach Monat gruppiert, je Monat aufklappbar nach Modell, dazu die letzten Aufrufe.
+
+Die Schätzung im Dialog ist grob: sie rechnet mit etwa 3,5 Zeichen je Token und festen Annahmen für Prompt-Overhead und Antwortlänge und zeigt deshalb eine Spanne.
+
 ## Zugang und Konten
 
 Die App verlangt eine Anmeldung. Konten bestehen aus E-Mail-Adresse und Passwort und liegen in einer SQLite-Datenbank (`DATA_DIR/app.db`, ohne zusätzliche Abhängigkeit über das in Node 22 eingebaute `node:sqlite`).
@@ -83,6 +99,7 @@ Im Netz gehört ein Reverse Proxy mit HTTPS davor (Caddy, Traefik, nginx). Das C
 | `SESSION_COOKIE_INSECURE` | nein | `true` setzt das Session-Cookie auch ohne HTTPS (nur LAN) |
 | `ANTHROPIC_API_KEY` | nein | Serverweiter Fallback-Key; Nutzer ohne eigenen Key verwenden ihn |
 | `ANTHROPIC_MODEL` | nein | Server-Vorgabe für das Modell, Standard `claude-opus-5`; jeder Nutzer kann im Konto ein anderes wählen |
+| `USD_EUR_RATE` | nein | USD je 1 EUR als Ausweichkurs, wenn der EZB-Kurs nicht abrufbar ist (z. B. `1.08`) |
 | `APP_PORT` | nein | Veröffentlichter Port bei Docker Compose, Standard 3000 |
 
 ## Bedienung
@@ -91,7 +108,7 @@ Im Netz gehört ein Reverse Proxy mit HTTPS davor (Caddy, Traefik, nginx). Das C
 1. docx-Datei in die Upload-Fläche ziehen oder auswählen (maximal 10 MB).
 2. Der Text erscheint mit farbigen Markierungen je Kategorie. Kategorien lassen sich über die Legende ein- und ausblenden.
 3. Ein Klick auf eine Markierung öffnet das Hinweisfeld mit Erklärung, Originalstelle und alternativer Formulierung. Mit `j`/`k` oder den Pfeiltasten geht es zur nächsten oder vorherigen Fundstelle.
-4. „Alternativen mit Claude laden“ ersetzt die festen Regelvorschläge durch Umformulierungen des Sprachmodells und blendet die Gesamteinschätzung ein.
+4. „Alternativen mit Claude laden“ öffnet den Dialog mit Modellwahl und Kostenschätzung. Nach dem Start ersetzen Umformulierungen des Sprachmodells die festen Regelvorschläge, die Gesamteinschätzung und die Kosten des Durchlaufs erscheinen in der Zusammenfassung.
 5. „Als docx mit Kommentaren exportieren“ lädt die kommentierte Kopie herunter.
 
 ## Grenzen
@@ -107,6 +124,7 @@ Im Netz gehört ein Reverse Proxy mit HTTPS davor (Caddy, Traefik, nginx). Das C
 src/app/                 Seiten (Analyse, anmelden, registrieren, konto) und API-Routen
 src/components/          Upload, Dokumentansicht, Hinweisfeld, Zusammenfassung, Header, Formularfelder
 src/lib/analysis/        Typen, Regeln (rules/), Analyse, Score
+src/lib/costs/           Modellpreise, Kostenbuchung, Schätzung, EZB-Wechselkurs, Formatierung
 src/lib/docx/            docx-Parser und Kommentar-Export (JSZip, xmldom)
 src/lib/llm/             Anthropic-Client, Modelle, Prompts, Structured Outputs
 src/lib/auth/            Passwörter, Sessions, Verschlüsselung, Nutzer, Data-Access-Schicht
