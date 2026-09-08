@@ -1,22 +1,23 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { DEFAULT_MODEL, resolveModel } from "./models";
 
-export const DEFAULT_MODEL = "claude-opus-5";
+export { DEFAULT_MODEL, resolveModel };
 
-export function getModel(): string {
-  return process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
-}
-
-export function hasApiCredentials(): boolean {
+/** Serverweiter Fallback-Key aus der Umgebung. */
+export function hasEnvCredentials(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY?.trim() || process.env.ANTHROPIC_AUTH_TOKEN?.trim());
 }
 
-let cached: Anthropic | null = null;
+export function llmAvailableFor(userKey: string | null): boolean {
+  return Boolean(userKey) || hasEnvCredentials();
+}
 
-/** Liefert den Client oder null, wenn keine Zugangsdaten konfiguriert sind. */
-export function getClient(): Anthropic | null {
-  if (!hasApiCredentials()) return null;
-  if (!cached) cached = new Anthropic({ maxRetries: 2, timeout: 10 * 60 * 1000 });
-  return cached;
+/** Client mit dem Key des Users, sonst mit den Umgebungs-Zugangsdaten, sonst null. */
+export function createClient(userKey: string | null): Anthropic | null {
+  const options = { maxRetries: 2, timeout: 10 * 60 * 1000 };
+  if (userKey) return new Anthropic({ apiKey: userKey, ...options });
+  if (hasEnvCredentials()) return new Anthropic(options);
+  return null;
 }
 
 export class LlmError extends Error {
@@ -31,16 +32,16 @@ export class LlmError extends Error {
 }
 
 /** Übersetzt SDK-Fehler in eine verständliche deutsche Meldung mit HTTP-Status. */
-export function toLlmError(err: unknown): LlmError {
+export function toLlmError(err: unknown, model?: string): LlmError {
   if (err instanceof LlmError) return err;
   if (err instanceof Anthropic.AuthenticationError) {
-    return new LlmError("Der Anthropic-API-Key wurde abgelehnt. Bitte ANTHROPIC_API_KEY prüfen.", 502, "auth");
+    return new LlmError("Der Anthropic-API-Key wurde abgelehnt. Bitte den Key unter „Konto“ prüfen.", 502, "auth");
   }
   if (err instanceof Anthropic.PermissionDeniedError) {
     return new LlmError("Der API-Key hat keine Berechtigung für dieses Modell.", 502, "auth");
   }
   if (err instanceof Anthropic.NotFoundError) {
-    return new LlmError(`Das Modell „${getModel()}“ wurde nicht gefunden. Bitte ANTHROPIC_MODEL prüfen.`, 502, "api");
+    return new LlmError(`Das Modell „${model ?? "unbekannt"}“ wurde nicht gefunden. Bitte die Modellauswahl unter „Konto“ prüfen.`, 502, "api");
   }
   if (err instanceof Anthropic.RateLimitError) {
     return new LlmError("Die Anthropic API meldet ein Ratenlimit. Bitte in einer Minute erneut versuchen.", 429, "rate_limit");

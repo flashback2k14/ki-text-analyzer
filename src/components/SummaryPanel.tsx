@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Score, Stats } from "@/lib/analysis/types";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/analysis/types";
 import type { Assessment } from "@/lib/llm/suggest";
@@ -46,7 +47,7 @@ export function SummaryPanel(props: Props) {
             type="button"
             onClick={props.onLoadSuggestions}
             disabled={!llmAvailable || llmState === "loading" || llmState === "done"}
-            title={llmAvailable ? "Sendet die Fundstellen und den Text an die Anthropic API" : "Kein ANTHROPIC_API_KEY konfiguriert"}
+            title={llmAvailable ? "Sendet die Fundstellen und den Text an die Anthropic API" : "Kein Anthropic-API-Key hinterlegt"}
             className="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
           >
             {llmState === "loading" ? "Claude arbeitet …" : llmState === "done" ? "Alternativen geladen" : "Alternativen mit Claude laden"}
@@ -113,7 +114,13 @@ export function SummaryPanel(props: Props) {
         </p>
       )}
       {!llmAvailable && (
-        <p className="mt-4 text-xs text-muted">Kein Anthropic-API-Key konfiguriert. Alternativen vom Sprachmodell und die Gesamteinschätzung sind deaktiviert; die Regel-Analyse funktioniert weiterhin.</p>
+        <p className="mt-4 text-xs text-muted">
+          Kein Anthropic-API-Key hinterlegt. Alternativen vom Sprachmodell und die Gesamteinschätzung sind deaktiviert; die Regel-Analyse funktioniert weiterhin. Unter{" "}
+          <Link href="/konto" className="text-accent hover:underline">
+            Konto
+          </Link>{" "}
+          kannst du einen eigenen Key speichern.
+        </p>
       )}
 
       {assessment && (

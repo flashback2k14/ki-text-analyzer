@@ -68,12 +68,12 @@ function renderItems(items: SuggestItem[]): string {
     .join("\n\n");
 }
 
-async function parseOrThrow<T>(promise: Promise<{ parsed_output: T | null; stop_reason: string | null }>): Promise<T> {
+async function parseOrThrow<T>(promise: Promise<{ parsed_output: T | null; stop_reason: string | null }>, model: string): Promise<T> {
   let response;
   try {
     response = await promise;
   } catch (err) {
-    throw toLlmError(err);
+    throw toLlmError(err, model);
   }
   if (response.stop_reason === "refusal") {
     throw new LlmError("Das Sprachmodell hat die Anfrage abgelehnt.", 502, "refusal");
@@ -111,6 +111,7 @@ export async function suggestAlternatives(client: ParseClient, model: string, it
           ],
           output_config: { format: zodOutputFormat(SuggestSchema) },
         }),
+        model,
       ),
     ),
   );
@@ -153,6 +154,7 @@ export async function assessDocument(client: ParseClient, model: string, fullTex
       ],
       output_config: { format: zodOutputFormat(AssessmentSchema) },
     }),
+    model,
   );
   return { ...parsed, truncated };
 }

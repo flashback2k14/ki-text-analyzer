@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { CATEGORIES } from "@/lib/analysis/types";
-import { getClient, getModel, LlmError, toLlmError } from "@/lib/llm/client";
+import { getUserApiKey, requireUser, unauthorizedResponse } from "@/lib/auth/dal";
+import type { User } from "@/lib/auth/users";
+import { createClient, LlmError, resolveModel, toLlmError } from "@/lib/llm/client";
 import { assessDocument, suggestAlternatives, type SuggestItem } from "@/lib/llm/suggest";
 
 export const dynamic = "force-dynamic";
@@ -24,10 +26,17 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const client = getClient();
+  let user: User;
+  try {
+    user = await requireUser();
+  } catch {
+    return unauthorizedResponse();
+  }
+
+  const client = createClient(getUserApiKey(user.id));
   if (!client) {
     return Response.json(
-      { error: "Kein Anthropic-API-Key konfiguriert. Alternativen vom Sprachmodell sind deaktiviert; die Regel-Analyse funktioniert weiterhin.", reason: "no_api_key" },
+      { error: "Kein Anthropic-API-Key hinterlegt. Unter „Konto“ kannst du einen Key speichern; die Regel-Analyse funktioniert weiterhin.", reason: "no_api_key" },
       { status: 503 },
     );
   }
@@ -39,7 +48,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Ungültige Anfrage." }, { status: 400 });
   }
 
-  const model = getModel();
+  const model = resolveModel(user.model);
   try {
     const [suggestions, assessment] = await Promise.all([
       suggestAlternatives(client, model, body.findings as SuggestItem[]),
@@ -51,7 +60,7 @@ export async function POST(request: Request) {
       assessment,
     });
   } catch (err) {
-    const llmErr = err instanceof LlmError ? err : toLlmError(err);
+    const llmErr = err instanceof LlmError ? err : toLlmError(err, model);
     if (llmErr.reason === "api") console.error(err);
     return Response.json({ error: llmErr.message, reason: llmErr.reason }, { status: llmErr.status });
   }

@@ -44,3 +44,9 @@ next-env.d.ts
 # Testartefakte
 /tests/fixtures/out/
 /playwright-out/
+
+# SQLite-Datenbank
+/data/
+*.db
+*.db-wal
+*.db-shm

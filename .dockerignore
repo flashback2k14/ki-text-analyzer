@@ -16,3 +16,7 @@ coverage
 .vscode
 .idea
 npm-debug.log*
+data
+*.db
+*.db-wal
+*.db-shm

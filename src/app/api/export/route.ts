@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/analysis/types";
 import { addCommentsToDocx, type CommentSpec } from "@/lib/docx/comments";
 import { DocxError } from "@/lib/docx/parse";
+import { requireUser, unauthorizedResponse } from "@/lib/auth/dal";
 import { errorResponse, readUploadedDocx } from "@/lib/docx/upload";
 
 export const dynamic = "force-dynamic";
@@ -43,6 +44,11 @@ function commentText(f: z.infer<typeof FindingsSchema>[number]): string {
 }
 
 export async function POST(request: Request) {
+  try {
+    await requireUser();
+  } catch {
+    return unauthorizedResponse();
+  }
   try {
     const clone = request.clone();
     const { name, bytes } = await readUploadedDocx(request);
