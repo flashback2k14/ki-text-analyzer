@@ -3,8 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Category, Finding } from "@/lib/analysis/types";
-import type { AnalyzeResponse, ApiError, SuggestResponse } from "@/lib/client-types";
+import type { AnalyzeResponse, ApiError, RunUsage, SuggestResponse } from "@/lib/client-types";
 import type { Assessment } from "@/lib/llm/suggest";
+import { ClaudeDialog } from "./ClaudeDialog";
 import { DocumentView } from "./DocumentView";
 import { FindingPanel } from "./FindingPanel";
 import { SummaryPanel } from "./SummaryPanel";
@@ -39,6 +40,8 @@ export function Analyzer() {
   const [llmError, setLlmError] = useState<string | null>(null);
   const [llmModel, setLlmModel] = useState<string | null>(null);
   const [assessment, setAssessment] = useState<(Assessment & { truncated: boolean }) | null>(null);
+  const [runUsage, setRunUsage] = useState<RunUsage | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
@@ -60,6 +63,8 @@ export function Analyzer() {
       setLlmError(null);
       setLlmModel(null);
       setAssessment(null);
+      setRunUsage(null);
+      setDialogOpen(false);
       setExportError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Analyse fehlgeschlagen.");
@@ -118,8 +123,15 @@ export function Analyzer() {
     });
   };
 
-  const loadSuggestions = async () => {
+  const fullText = useMemo(() => (result ? result.paragraphs.map((p) => p.text).filter((t) => t.trim()).join("\n\n") : ""), [result]);
+  const suggestChars = useMemo(
+    () => (result ? findings.reduce((n, f) => n + (result.paragraphs[f.paragraphIndex]?.text.length ?? 0) + f.message.length + 80, 0) : 0),
+    [result, findings],
+  );
+
+  const loadSuggestions = async (model: string) => {
     if (!result) return;
+    setDialogOpen(false);
     setLlmState("loading");
     setLlmError(null);
     try {
@@ -132,8 +144,10 @@ export function Analyzer() {
           matchedText: f.matchedText,
           paragraphText: result.paragraphs[f.paragraphIndex]?.text ?? "",
         })),
-        fullText: result.paragraphs.map((p) => p.text).filter((t) => t.trim()).join("\n\n"),
+        fullText,
         assess: true,
+        model,
+        fileName: result.fileName,
       };
       const res = await fetch("/api/suggest", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error(await readError(res, `Anfrage an das Sprachmodell fehlgeschlagen (Status ${res.status}).`, toLogin));
@@ -146,6 +160,8 @@ export function Analyzer() {
       );
       setAssessment(data.assessment);
       setLlmModel(data.model);
+      setRunUsage(data.usage);
+      if (data.assessmentError) setLlmError(data.assessmentError);
       setLlmState("done");
     } catch (err) {
       setLlmError(err instanceof Error ? err.message : "Anfrage an das Sprachmodell fehlgeschlagen.");
@@ -234,9 +250,10 @@ export function Analyzer() {
         llmError={llmError}
         llmModel={llmModel}
         assessment={assessment}
+        runUsage={runUsage}
         exporting={exporting}
         exportError={exportError}
-        onLoadSuggestions={loadSuggestions}
+        onLoadSuggestions={() => setDialogOpen(true)}
         onExport={exportDocx}
         onReset={reset}
       />
@@ -254,6 +271,15 @@ export function Analyzer() {
           <p className="mt-2 text-xs text-muted">Tastatur: j / k oder Pfeiltasten wechseln zwischen den Fundstellen.</p>
         </div>
       </div>
+      {dialogOpen && (
+        <ClaudeDialog
+          onClose={() => setDialogOpen(false)}
+          onStart={loadSuggestions}
+          suggestChars={suggestChars}
+          assessChars={fullText.length}
+          findingsCount={findings.length}
+        />
+      )}
     </main>
   );
 }

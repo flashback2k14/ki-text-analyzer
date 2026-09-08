@@ -3,6 +3,8 @@
 import Link from "next/link";
 import type { Score, Stats } from "@/lib/analysis/types";
 import { CATEGORIES, CATEGORY_LABELS } from "@/lib/analysis/types";
+import type { RunUsage } from "@/lib/client-types";
+import { describeRate, formatMoney, formatTokens, formatUsd } from "@/lib/costs/format";
 import type { Assessment } from "@/lib/llm/suggest";
 
 interface Props {
@@ -14,6 +16,7 @@ interface Props {
   llmError: string | null;
   llmModel: string | null;
   assessment: (Assessment & { truncated: boolean }) | null;
+  runUsage: RunUsage | null;
   exporting: boolean;
   exportError: string | null;
   onLoadSuggestions: () => void;
@@ -28,7 +31,7 @@ function scoreColor(value: number): string {
 }
 
 export function SummaryPanel(props: Props) {
-  const { fileName, score, stats, llmAvailable, llmState, llmError, llmModel, assessment, exporting, exportError } = props;
+  const { fileName, score, stats, llmAvailable, llmState, llmError, llmModel, assessment, runUsage, exporting, exportError } = props;
   const color = scoreColor(score.value);
 
   return (
@@ -120,6 +123,29 @@ export function SummaryPanel(props: Props) {
             Konto
           </Link>{" "}
           kannst du einen eigenen Key speichern.
+        </p>
+      )}
+
+      {runUsage && (
+        <p className="mt-4 text-sm" aria-label="Kosten dieses Durchlaufs">
+          <span className="font-medium">Dieser Durchlauf:</span>{" "}
+          {runUsage.costUsd !== null ? (
+            <>
+              {formatMoney(runUsage.costUsd, runUsage.rate)}
+              {runUsage.rate && <span className="text-muted"> ({formatUsd(runUsage.costUsd)})</span>}
+            </>
+          ) : (
+            <span className="text-muted">kein Preis für „{runUsage.model}“ hinterlegt</span>
+          )}
+          <span className="text-muted">
+            {" "}
+            · {runUsage.model} · {formatTokens(runUsage.tokens.inputTokens + runUsage.tokens.cacheWriteTokens + runUsage.tokens.cacheReadTokens)} Eingabe- und {formatTokens(runUsage.tokens.outputTokens)} Ausgabe-Token in {runUsage.tokens.requests}{" "}
+            {runUsage.tokens.requests === 1 ? "Anfrage" : "Anfragen"}
+            {runUsage.costUsd !== null ? ` · ${describeRate(runUsage.rate)}` : ""} · Übersicht unter{" "}
+            <Link href="/konto" className="underline hover:text-accent">
+              Konto
+            </Link>
+          </span>
         </p>
       )}
 

@@ -37,6 +37,7 @@ describe("users", () => {
   it("legt das Schema idempotent an", () => {
     const db = openDatabase(":memory:");
     const version = db.prepare("SELECT version FROM schema_version").get() as { version: number };
-    expect(version.version).toBe(1);
+    expect(version.version).toBe(2);
+    expect(db.prepare("SELECT COUNT(*) AS n FROM model_prices").get()).toMatchObject({ n: 8 });
   });
 });

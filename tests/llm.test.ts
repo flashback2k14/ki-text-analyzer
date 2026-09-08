@@ -26,6 +26,7 @@ describe("suggestAlternatives", () => {
       const ids = [...content.matchAll(/findingId: (f\d+)/g)].map((m) => m[1]);
       return {
         stop_reason: "end_turn",
+        usage: { input_tokens: 1000, output_tokens: 200, cache_creation_input_tokens: 50, cache_read_input_tokens: 10 },
         parsed_output: {
           suggestions: [
             ...ids.map((id) => ({ findingId: id, alternative: `Alt ${id}`, begruendung: `Weil ${id}` })),
@@ -34,11 +35,12 @@ describe("suggestAlternatives", () => {
         },
       };
     });
-    const result = await suggestAlternatives(client, "claude-opus-5", items);
+    const { suggestions: result, usage } = await suggestAlternatives(client, "claude-opus-5", items);
     expect(client.parse).toHaveBeenCalledTimes(2);
     expect(result.size).toBe(items.length);
     expect(result.get("f0")).toEqual({ alternative: "Alt f0", begruendung: "Weil f0" });
     expect(result.has("unbekannt")).toBe(false);
+    expect(usage).toEqual({ requests: 2, inputTokens: 2000, outputTokens: 400, cacheWriteTokens: 100, cacheReadTokens: 20 });
     const firstCall = client.parse.mock.calls[0][0] as { model: string; output_config: unknown; system: unknown };
     expect(firstCall.model).toBe("claude-opus-5");
     expect(firstCall.output_config).toBeTruthy();
@@ -46,7 +48,9 @@ describe("suggestAlternatives", () => {
 
   it("ruft die API bei null Fundstellen nicht auf", async () => {
     const client = mockClient(() => ({ stop_reason: "end_turn", parsed_output: { suggestions: [] } }));
-    expect((await suggestAlternatives(client, "m", [])).size).toBe(0);
+    const empty = await suggestAlternatives(client, "m", []);
+    expect(empty.suggestions.size).toBe(0);
+    expect(empty.usage.requests).toBe(0);
     expect(client.parse).not.toHaveBeenCalled();
   });
 
@@ -75,8 +79,10 @@ describe("assessDocument", () => {
       parsed_output: { einschaetzung: "Wirkt generiert.", wahrscheinlichkeit: "hoch", auffaelligkeiten: ["Fazit"], staerken: [] },
     }));
     const short = await assessDocument(client, "m", "Kurzer Text.");
-    expect(short.wahrscheinlichkeit).toBe("hoch");
-    expect(short.truncated).toBe(false);
+    expect(short.assessment.wahrscheinlichkeit).toBe("hoch");
+    expect(short.assessment.truncated).toBe(false);
+    // Ohne usage in der Antwort zählen die Token als 0, die Anfrage aber als 1.
+    expect(short.usage).toEqual({ requests: 1, inputTokens: 0, outputTokens: 0, cacheWriteTokens: 0, cacheReadTokens: 0 });
 
     const long = Array.from({ length: 40000 }, (_, i) => `w${i}`).join(" ");
     const { text, truncated } = excerptForAssessment(long);

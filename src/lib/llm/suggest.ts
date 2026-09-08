@@ -2,6 +2,7 @@ import type Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { CATEGORY_LABELS, type Category } from "@/lib/analysis/types";
+import { addUsage, EMPTY_USAGE, type UsageTotals } from "@/lib/costs/types";
 import { LlmError, toLlmError } from "./client";
 import { ASSESSMENT_INSTRUCTIONS, STYLE_RULES } from "./prompts";
 
@@ -68,8 +69,32 @@ function renderItems(items: SuggestItem[]): string {
     .join("\n\n");
 }
 
-async function parseOrThrow<T>(promise: Promise<{ parsed_output: T | null; stop_reason: string | null }>, model: string): Promise<T> {
-  let response;
+interface ApiUsage {
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  cache_creation_input_tokens?: number | null;
+  cache_read_input_tokens?: number | null;
+}
+
+interface ParsedResponse<T> {
+  parsed_output: T | null;
+  stop_reason: string | null;
+  usage?: ApiUsage;
+}
+
+/** Token-Zählung aus der API-Antwort; fehlende Felder zählen als 0. */
+export function usageOf(usage: ApiUsage | undefined): UsageTotals {
+  return {
+    requests: 1,
+    inputTokens: usage?.input_tokens ?? 0,
+    outputTokens: usage?.output_tokens ?? 0,
+    cacheWriteTokens: usage?.cache_creation_input_tokens ?? 0,
+    cacheReadTokens: usage?.cache_read_input_tokens ?? 0,
+  };
+}
+
+async function parseOrThrow<T>(promise: Promise<ParsedResponse<T>>, model: string): Promise<{ parsed: T; usage: UsageTotals }> {
+  let response: ParsedResponse<T>;
   try {
     response = await promise;
   } catch (err) {
@@ -84,13 +109,18 @@ async function parseOrThrow<T>(promise: Promise<{ parsed_output: T | null; stop_
   if (!response.parsed_output) {
     throw new LlmError("Die Antwort des Sprachmodells konnte nicht gelesen werden.", 502, "parse");
   }
-  return response.parsed_output;
+  return { parsed: response.parsed_output, usage: usageOf(response.usage) };
+}
+
+export interface SuggestResult {
+  suggestions: Map<string, Suggestion>;
+  usage: UsageTotals;
 }
 
 /** Holt für jede Fundstelle eine alternative Formulierung (gebündelt in Chunks). */
-export async function suggestAlternatives(client: ParseClient, model: string, items: SuggestItem[]): Promise<Map<string, Suggestion>> {
-  const result = new Map<string, Suggestion>();
-  if (items.length === 0) return result;
+export async function suggestAlternatives(client: ParseClient, model: string, items: SuggestItem[]): Promise<SuggestResult> {
+  const suggestions = new Map<string, Suggestion>();
+  if (items.length === 0) return { suggestions, usage: EMPTY_USAGE };
   const known = new Set(items.map((i) => i.id));
 
   const chunks = chunk(items, CHUNK_SIZE);
@@ -116,15 +146,17 @@ export async function suggestAlternatives(client: ParseClient, model: string, it
     ),
   );
 
+  let usage = EMPTY_USAGE;
   for (const res of responses) {
-    for (const s of res.suggestions) {
-      if (!known.has(s.findingId) || result.has(s.findingId)) continue;
+    usage = addUsage(usage, res.usage);
+    for (const s of res.parsed.suggestions) {
+      if (!known.has(s.findingId) || suggestions.has(s.findingId)) continue;
       const alternative = s.alternative.trim();
       if (!alternative) continue;
-      result.set(s.findingId, { alternative, begruendung: s.begruendung.trim() });
+      suggestions.set(s.findingId, { alternative, begruendung: s.begruendung.trim() });
     }
   }
-  return result;
+  return { suggestions, usage };
 }
 
 export const MAX_ASSESSMENT_WORDS = 30000;
@@ -139,9 +171,14 @@ export function excerptForAssessment(text: string, maxWords = MAX_ASSESSMENT_WOR
   return { text: pieces.map((p) => p.join(" ")).join("\n\n[…]\n\n"), truncated: true };
 }
 
-export async function assessDocument(client: ParseClient, model: string, fullText: string): Promise<Assessment & { truncated: boolean }> {
+export interface AssessResult {
+  assessment: Assessment & { truncated: boolean };
+  usage: UsageTotals;
+}
+
+export async function assessDocument(client: ParseClient, model: string, fullText: string): Promise<AssessResult> {
   const { text, truncated } = excerptForAssessment(fullText);
-  const parsed = await parseOrThrow(
+  const { parsed, usage } = await parseOrThrow(
     client.messages.parse({
       model,
       max_tokens: 16000,
@@ -156,5 +193,5 @@ export async function assessDocument(client: ParseClient, model: string, fullTex
     }),
     model,
   );
-  return { ...parsed, truncated };
+  return { assessment: { ...parsed, truncated }, usage };
 }
