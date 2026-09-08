@@ -6,10 +6,15 @@ services:
     restart: unless-stopped
     ports:
       - "${APP_PORT:-3000}:3000"
-    env_file:
-      - .env
+    # Werte kommen aus .env (lokal) oder aus den Stack-Umgebungsvariablen (Portainer); keine .env-Datei nötig.
     environment:
       NODE_ENV: production
+      APP_SECRET: "${APP_SECRET:?APP_SECRET fehlt. Erzeugen mit openssl rand -base64 32}"
+      REGISTRATION_CODE: ${REGISTRATION_CODE:-}
+      SESSION_COOKIE_INSECURE: ${SESSION_COOKIE_INSECURE:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      USD_EUR_RATE: ${USD_EUR_RATE:-}
     volumes:
       - app-data:/app/data
     healthcheck:
