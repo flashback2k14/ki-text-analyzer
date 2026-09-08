@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Category, Finding } from "@/lib/analysis/types";
 import type { AnalyzeResponse, ApiError, RunUsage, SuggestResponse } from "@/lib/client-types";
 import type { Assessment } from "@/lib/llm/suggest";
+import { allowPersist, blockPersist, clearStoredSession, loadStoredSession, saveStoredSession, type StoredSession } from "@/lib/session-store";
 import { ClaudeDialog } from "./ClaudeDialog";
 import { DocumentView } from "./DocumentView";
 import { FindingPanel } from "./FindingPanel";
@@ -26,7 +27,7 @@ async function readError(res: Response, fallback: string, onUnauthorized: () => 
   }
 }
 
-export function Analyzer() {
+export function Analyzer({ userId }: { userId: string }) {
   const router = useRouter();
   const toLogin = useCallback(() => router.push("/anmelden?next=/"), [router]);
   const [file, setFile] = useState<File | null>(null);
@@ -44,10 +45,73 @@ export function Analyzer() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  /** true, bis der gespeicherte Stand aus IndexedDB geprüft wurde (verhindert ein kurzes Aufblitzen der Upload-Fläche). */
+  const [restoring, setRestoring] = useState(true);
+  /** Letzter Stand, damit er beim Verlassen der Seite auch vor Ablauf des Timers geschrieben wird. */
+  const pending = useRef<StoredSession | null>(null);
+
+  // Gespeicherten Stand wiederherstellen; Stände anderer User werden verworfen.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const stored = await loadStoredSession();
+      if (cancelled) return;
+      if (stored && stored.userId === userId) {
+        setFile(new File([stored.file], stored.fileName, { type: stored.file.type }));
+        setResult(stored.result);
+        setFindings(stored.findings);
+        setAssessment(stored.assessment);
+        setLlmModel(stored.llmModel);
+        setRunUsage(stored.runUsage);
+        setLlmState(stored.llmState);
+        setSelectedId(stored.selectedId);
+        setHidden(new Set(stored.hidden));
+      } else if (stored) {
+        void clearStoredSession();
+      }
+      setRestoring(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Jede Änderung am Ergebnis sichern (leicht verzögert, damit schnelle Folgeänderungen zusammenfallen).
+  useEffect(() => {
+    if (restoring || !file || !result) return;
+    const session: StoredSession = {
+      userId,
+      savedAt: Date.now(),
+      file,
+      fileName: file.name,
+      result,
+      findings,
+      assessment,
+      llmModel,
+      runUsage,
+      llmState: llmState === "loading" ? "idle" : llmState,
+      selectedId,
+      hidden: [...hidden],
+    };
+    pending.current = session;
+    const timer = setTimeout(() => {
+      pending.current = null;
+      void saveStoredSession(session);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [restoring, userId, file, result, findings, assessment, llmModel, runUsage, llmState, selectedId, hidden]);
+
+  // Beim Verlassen der Seite (Wechsel zum Konto) den noch nicht geschriebenen Stand sichern.
+  useEffect(() => {
+    return () => {
+      if (pending.current) void saveStoredSession(pending.current);
+    };
+  }, []);
 
   const analyze = useCallback(async (f: File) => {
     setBusy(true);
     setError(null);
+    allowPersist();
     try {
       const form = new FormData();
       form.append("file", f);
@@ -74,11 +138,21 @@ export function Analyzer() {
   }, [toLogin]);
 
   const reset = () => {
+    blockPersist();
+    pending.current = null;
+    void clearStoredSession();
     setFile(null);
     setResult(null);
     setFindings([]);
     setSelectedId(null);
+    setHidden(new Set());
     setError(null);
+    setLlmState("idle");
+    setLlmError(null);
+    setLlmModel(null);
+    setAssessment(null);
+    setRunUsage(null);
+    setExportError(null);
   };
 
   const visibleFindings = useMemo(() => findings.filter((f) => !hidden.has(f.category)), [findings, hidden]);
@@ -221,6 +295,14 @@ export function Analyzer() {
       setExporting(false);
     }
   };
+
+  if (restoring) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-4 py-12" aria-busy="true">
+        <p className="text-sm text-muted">Lade …</p>
+      </main>
+    );
+  }
 
   if (!result) {
     return (

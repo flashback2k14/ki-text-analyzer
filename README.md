@@ -118,6 +118,8 @@ Stack aus dem Git-Repository anlegen (Compose-Pfad `compose.yaml`). Eine `.env`-
 4. „Alternativen mit Claude laden“ öffnet den Dialog mit Modellwahl und Kostenschätzung. Nach dem Start ersetzen Umformulierungen des Sprachmodells die festen Regelvorschläge, die Gesamteinschätzung und die Kosten des Durchlaufs erscheinen in der Zusammenfassung.
 5. „Als docx mit Kommentaren exportieren“ lädt die kommentierte Kopie herunter.
 
+Das geladene Dokument samt Fundstellen, Claude-Alternativen, Einschätzung und Kosten des Durchlaufs bleibt beim Wechsel zwischen Analyse und Konto sowie nach einem Neuladen der Seite erhalten. Es liegt dazu in der IndexedDB des Browsers, nicht auf dem Server, und wird gelöscht, sobald „Neue Datei“ geklickt oder abgemeldet wird. Ein anderes Konto am selben Browser sieht den Stand nicht.
+
 ## Grenzen
 
 - Die Regeln erkennen Muster, keine Herkunft. Ein sauber formulierter KI-Text bleibt unauffällig, ein Mensch kann Floskeln schreiben.
@@ -136,6 +138,7 @@ src/lib/docx/            docx-Parser und Kommentar-Export (JSZip, xmldom)
 src/lib/llm/             Anthropic-Client, Modelle, Prompts, Structured Outputs
 src/lib/auth/            Passwörter, Sessions, Verschlüsselung, Nutzer, Data-Access-Schicht
 src/lib/db.ts            SQLite (node:sqlite) mit Schema-Migration
+src/lib/session-store.ts Analysestand im Browser (IndexedDB), überlebt Seitenwechsel und Reload
 src/proxy.ts             Leitet ohne Session-Cookie auf /anmelden um, außer /api/health
 src/instrumentation.ts   Prüft APP_SECRET und öffnet die Datenbank beim Start
 tests/                   vitest-Tests und Fixture-Dokumente
