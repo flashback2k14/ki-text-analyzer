@@ -85,9 +85,15 @@ cp .env.example .env      # APP_SECRET, REGISTRATION_CODE, ggf. ANTHROPIC_API_KE
 docker compose up -d --build
 ```
 
+Das Compose-File liest keine `.env`-Datei ein, sondern setzt die Variablen per Interpolation (`${APP_SECRET}` usw.). Lokal nimmt `docker compose` die Werte automatisch aus der `.env` im Projektverzeichnis. Fehlt `APP_SECRET`, bricht Compose mit einer klaren Meldung ab.
+
 Die App ist danach unter `http://localhost:3000` erreichbar (Port über `APP_PORT` in `.env` änderbar). Der Container läuft als unprivilegierter Nutzer, hat einen Healthcheck auf `/api/health` und startet nach Neustarts automatisch. Die Datenbank liegt im benannten Volume `app-data` unter `/app/data` und übersteht Neubauten des Images.
 
 Im Netz gehört ein Reverse Proxy mit HTTPS davor (Caddy, Traefik, nginx). Das Compose-File enthält bewusst keinen. Im Produktionsmodus wird das Session-Cookie nur über HTTPS gesetzt; für einen Betrieb ohne TLS im eigenen LAN lässt sich das mit `SESSION_COOKIE_INSECURE=true` abschalten.
+
+### Mit Portainer
+
+Stack aus dem Git-Repository anlegen (Compose-Pfad `compose.yaml`). Eine `.env`-Datei gibt es im Stack-Verzeichnis nicht; die Werte trägst du unter „Environment variables“ des Stacks ein: mindestens `APP_SECRET`, bei Bedarf `REGISTRATION_CODE`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `USD_EUR_RATE`, `SESSION_COOKIE_INSECURE` und `APP_PORT`. Portainer setzt sie beim Deployment in das Compose-File ein.
 
 ## Umgebungsvariablen
 
@@ -95,7 +101,7 @@ Im Netz gehört ein Reverse Proxy mit HTTPS davor (Caddy, Traefik, nginx). Das C
 | --- | --- | --- |
 | `APP_SECRET` | ja | Mindestens 32 Zeichen; verschlüsselt die gespeicherten API-Keys. Nicht ändern, sonst sind die Keys verloren. |
 | `REGISTRATION_CODE` | nein | Einladungscode für die Registrierung. Leer = Registrierung gesperrt |
-| `DATA_DIR` | nein | Verzeichnis der SQLite-Datenbank, Standard `./data` (Docker: `/app/data`) |
+| `DATA_DIR` | nein | Verzeichnis der SQLite-Datenbank bei `npm run dev`/`npm start`, Standard `./data`. Im Container fest `/app/data` |
 | `SESSION_COOKIE_INSECURE` | nein | `true` setzt das Session-Cookie auch ohne HTTPS (nur LAN) |
 | `ANTHROPIC_API_KEY` | nein | Serverweiter Fallback-Key; Nutzer ohne eigenen Key verwenden ihn |
 | `ANTHROPIC_MODEL` | nein | Server-Vorgabe für das Modell, Standard `claude-opus-5`; jeder Nutzer kann im Konto ein anderes wählen |
