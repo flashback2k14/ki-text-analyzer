@@ -5,5 +5,5 @@ import { getCurrentUser } from "@/lib/auth/dal";
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/anmelden");
-  return <Analyzer />;
+  return <Analyzer userId={user.id} />;
 }

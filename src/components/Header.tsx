@@ -3,8 +3,8 @@ import pkg from "../../package.json";
 import { logout } from "@/lib/auth/actions";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { isRegistrationOpen } from "@/lib/auth/registration";
-import { secondaryButton } from "./FormField";
 import { InfoButton } from "./InfoDialog";
+import { LogoutButton } from "./LogoutButton";
 import { Logo } from "./Logo";
 
 /** Zeigt nur an, wer angemeldet ist. Der Zugriffsschutz liegt in den Seiten, Actions und Routen. */
@@ -27,11 +27,7 @@ export async function Header() {
                 Konto
               </Link>
               <InfoButton version={pkg.version} />
-              <form action={logout}>
-                <button type="submit" className={secondaryButton}>
-                  Abmelden
-                </button>
-              </form>
+              <LogoutButton action={logout} />
             </>
           ) : (
             <>
