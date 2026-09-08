@@ -7,6 +7,11 @@ describe("classifyPath", () => {
     expect(classifyPath("/registrieren/")).toBe("public");
     expect(classifyPath("/api/health")).toBe("public");
   });
+  it("gibt die App-Icons frei", () => {
+    expect(classifyPath("/icon.svg")).toBe("public");
+    expect(classifyPath("/apple-icon.png")).toBe("public");
+    expect(classifyPath("/icon.svg.bak")).toBe("page");
+  });
   it("unterscheidet API und Seiten", () => {
     expect(classifyPath("/api/analyze")).toBe("api");
     expect(classifyPath("/api")).toBe("api");

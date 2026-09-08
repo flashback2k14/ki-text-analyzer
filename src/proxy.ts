@@ -22,6 +22,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Alles außer statischen Assets; /api/health wird in classifyPath freigegeben.
+  // Alles außer statischen Assets; /api/health und die App-Icons werden in classifyPath freigegeben.
   matcher: ["/((?!_next/static|_next/image|favicon\\.ico).*)"],
 };

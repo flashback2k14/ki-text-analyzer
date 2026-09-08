@@ -73,6 +73,7 @@ npm test            # Unit-Tests (vitest)
 npm run typecheck   # TypeScript
 npm run lint        # ESLint
 npm run fixtures    # Test-Dokumente unter tests/fixtures neu erzeugen
+npm run icons       # Favicon, ICO und Apple-Icon aus src/lib/logo.ts neu erzeugen
 npm run build && npm start
 ```
 
@@ -139,6 +140,7 @@ src/proxy.ts             Leitet ohne Session-Cookie auf /anmelden um, außer /ap
 src/instrumentation.ts   Prüft APP_SECRET und öffnet die Datenbank beim Start
 tests/                   vitest-Tests und Fixture-Dokumente
 scripts/make-fixtures.ts erzeugt die Fixture-Dokumente
+scripts/make-icons.ts    erzeugt icon.svg, favicon.ico und apple-icon.png in src/app aus src/lib/logo.ts
 ```
 
 ## Lizenz
