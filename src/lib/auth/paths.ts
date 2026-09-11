@@ -2,8 +2,9 @@
 
 export type PathKind = "public" | "page" | "api";
 
-/** Login, Registrierung, Healthcheck und die App-Icons (favicon.ico ist schon im Proxy-Matcher ausgenommen). */
-export const PUBLIC_PATHS = ["/anmelden", "/registrieren", "/api/health", "/icon.svg", "/apple-icon.png"] as const;
+/** Startseite, Login, Registrierung, Healthcheck und die App-Icons (favicon.ico ist schon im Proxy-Matcher ausgenommen). */
+// Die Startseite zeigt ohne Sitzung die Landing Page; den Analyzer gibt sie erst nach der Prüfung in der Seite frei.
+export const PUBLIC_PATHS = ["/", "/anmelden", "/registrieren", "/api/health", "/icon.svg", "/apple-icon.png"] as const;
 
 export function classifyPath(pathname: string): PathKind {
   const clean = pathname.replace(/\/+$/, "") || "/";

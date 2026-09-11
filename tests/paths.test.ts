@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { classifyPath, safeNextPath } from "@/lib/auth/paths";
 
 describe("classifyPath", () => {
-  it("gibt Login, Registrierung und Healthcheck frei", () => {
+  it("gibt Startseite, Login, Registrierung und Healthcheck frei", () => {
+    expect(classifyPath("/")).toBe("public");
     expect(classifyPath("/anmelden")).toBe("public");
     expect(classifyPath("/registrieren/")).toBe("public");
     expect(classifyPath("/api/health")).toBe("public");
@@ -15,7 +16,6 @@ describe("classifyPath", () => {
   it("unterscheidet API und Seiten", () => {
     expect(classifyPath("/api/analyze")).toBe("api");
     expect(classifyPath("/api")).toBe("api");
-    expect(classifyPath("/")).toBe("page");
     expect(classifyPath("/konto")).toBe("page");
     expect(classifyPath("/anmelden-x")).toBe("page");
   });
