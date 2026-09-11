@@ -42,13 +42,14 @@ Die Schätzung im Dialog ist grob: sie rechnet mit etwa 3,5 Zeichen je Token und
 
 ## Zugang und Konten
 
-Die App verlangt eine Anmeldung. Konten bestehen aus E-Mail-Adresse und Passwort und liegen in einer SQLite-Datenbank (`DATA_DIR/app.db`, ohne zusätzliche Abhängigkeit über das in Node 22 eingebaute `node:sqlite`).
+Der Analyzer verlangt eine Anmeldung; ohne Sitzung zeigt die Startseite eine Landing Page mit der Funktionsweise. Konten bestehen aus E-Mail-Adresse und Passwort und liegen in einer SQLite-Datenbank (`DATA_DIR/app.db`, ohne zusätzliche Abhängigkeit über das in Node 22 eingebaute `node:sqlite`).
 
 - **Registrierung** ist nur mit dem Einladungscode aus `REGISTRATION_CODE` möglich. Ist die Variable leer, gibt es keine Registrierung; bestehende Konten können sich weiterhin anmelden.
 - **Sessions** liegen in der Datenbank; der Browser bekommt nur ein zufälliges Token als httpOnly-Cookie (30 Tage). Abmelden löscht die Session.
 - **Passwörter** werden mit scrypt gehasht.
 - **API-Keys** werden mit AES-256-GCM verschlüsselt gespeichert; der Schlüssel wird aus `APP_SECRET` abgeleitet. Wird `APP_SECRET` geändert, sind alle gespeicherten Keys unlesbar und müssen neu eingetragen werden. Die Konto-Seite zeigt das an.
 - `/api/health` ist ohne Anmeldung erreichbar (Docker-Healthcheck).
+- **Die Startseite `/`** ist öffentlich. Ohne Sitzung steht dort die Landing Page (`src/components/landing/`), mit Sitzung direkt der Analyzer. Gestaltet ist sie nach dem Skill [Hallmark](https://github.com/nutlope/hallmark); die Entwurfsentscheidungen liegen in `.hallmark/`, die Design-Tokens zusätzlich portabel in `tokens.css`.
 
 Im Konto kann jeder Nutzer seinen Anthropic-API-Key speichern, testen und löschen, das Claude-Modell wählen und das Passwort ändern. Ohne eigenen Key greift `ANTHROPIC_API_KEY` aus der Umgebung, ohne Modellwahl `ANTHROPIC_MODEL`.
 

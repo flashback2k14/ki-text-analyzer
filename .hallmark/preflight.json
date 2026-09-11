@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-11",
+  "framework": "Next.js 16.3.4 (App Router, src/proxy.ts statt middleware)",
+  "fontStack": "keine – system-ui-Kette in src/app/globals.css",
+  "palette": "Hex-Tokens in :root + @theme inline (src/app/globals.css), Dark Mode über prefers-color-scheme",
+  "spacing": "Tailwind v4 Standard (4-pt), keine eigene Skala",
+  "motion": "keine Library – motion-cut",
+  "preserved": ["Tailwind-v4-Setup", "App-Tokens in globals.css", "bestehender Header"],
+  "introduced": ["Grid-Theme-Tokens auf .lp", "Archivo über next/font", "tokens.css im Projektwurzelverzeichnis"]
+}

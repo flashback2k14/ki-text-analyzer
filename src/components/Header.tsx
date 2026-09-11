@@ -12,8 +12,8 @@ export async function Header() {
   const user = await getCurrentUser();
   return (
     <header className="border-b border-border bg-surface">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2.5">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight hover:text-accent">
+      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-1.5 px-4 py-2.5">
+        <Link href="/" className="flex items-center gap-2 whitespace-nowrap text-sm font-semibold tracking-tight hover:text-accent">
           <Logo size={22} />
           KI-Text-Analyzer
         </Link>

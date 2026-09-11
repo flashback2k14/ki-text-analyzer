@@ -1,0 +1,845 @@
+/* Hallmark · genre: editorial · macrostructure: Manifesto · theme: Grid (signal ink: ultramarine)
+ * tone: austere · audience: Autorinnen und Lektoren deutscher Texte · use: Anmeldung / Selbst-Hosting
+ * nav: N1a (geerbter App-Header, 2 Ziele) · footer: Ft4 · enrichment: none (Marks-Kit, eine Platte)
+ * pre-emit critique: P5 H4 E4 S5 R4 V5
+ * contrast: pass (40-41) · slop: pass (42-45) · honest: pass (46) · chrome: pass (47)
+ * tokens: pass (48) · responsive: pass (49) · mobile: pass (34, 49, 50-57) · icons: pass (30)
+ */
+
+html,
+body {
+  overflow-x: clip;
+}
+
+/* Der App-Header steht über der Seite. Auf der Landing Page bekommt er das Blatt der Seite,
+   damit Chrome und Poster dasselbe Papier haben - auch im dunklen Systemmodus. */
+body:has(.lp) {
+  --background: oklch(99% 0.003 255);
+  --foreground: oklch(16% 0.01 255);
+  --surface: oklch(99% 0.003 255);
+  --border: oklch(88% 0.004 255);
+  --muted: oklch(34% 0.006 255);
+  --accent: oklch(45% 0.19 264);
+  color-scheme: light;
+}
+
+.lp {
+  /* ── Farbe: ein Blatt, eine Tinte, ein Signal ─────────────────────────── */
+  --color-paper: oklch(99% 0.003 255);
+  --color-paper-2: oklch(97.2% 0.003 255);
+  --color-paper-3: oklch(94.5% 0.004 255);
+  --color-rule: oklch(88% 0.004 255);
+  --color-rule-2: oklch(72% 0.005 255);
+  --color-muted: oklch(48% 0.006 255);
+  --color-neutral: oklch(34% 0.006 255);
+  --color-ink-2: oklch(26% 0.008 255);
+  --color-ink: oklch(16% 0.01 255);
+  --color-accent: oklch(45% 0.19 264);
+  --color-accent-ink: oklch(99% 0.003 255);
+  --color-accent-soft: oklch(45% 0.19 264 / 0.14);
+  --color-focus: oklch(45% 0.19 264);
+  --color-rail-on-plate: oklch(99% 0.003 255 / 0.16);
+
+  /* ── Schrift: eine Familie, Unterschiede kommen aus Gewicht und Größe ─── */
+  --font-display: var(--font-archivo), "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-archivo), "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-archivo), "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --display-weight: 800;
+
+  --text-display: clamp(2.5rem, 8.5vw, 5.25rem);
+  --text-display-s: clamp(1.75rem, 3.4vw + 0.5rem, 3rem);
+  --text-numeral: clamp(5rem, 16vw, 13rem);
+  --text-2xl: clamp(1.5rem, 2vw + 0.5rem, 2rem);
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --text-label: 0.75rem;
+
+  --tracking-display: -0.045em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.09em;
+
+  --lh-display: 0.92;
+  --lh-tight: 1.1;
+  --lh-body: 1.55;
+
+  /* ── Raum: 4-pt-Skala ─────────────────────────────────────────────────── */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  --shell: 80rem;
+  --gutter: var(--space-lg);
+  --rule-hair: 1px;
+  --rule-ink: 2px;
+  --radius-none: 0;
+
+  /* ── Bewegung: zwei Primitive, mehr braucht das Blatt nicht ───────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+
+  --z-base: 1;
+  --z-raised: 10;
+
+  position: relative;
+  isolation: isolate;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  line-height: var(--lh-body);
+  overflow-x: clip;
+}
+
+.lp ::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+/* ── Das Raster: zwölf Haarlinien, hinter allem, sichtbar ────────────────── */
+.lp__rails {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  background-clip: content-box;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-rule) 0,
+    var(--color-rule) 1px,
+    transparent 1px,
+    transparent calc(100% / 12)
+  );
+}
+
+.lp__band {
+  position: relative;
+  z-index: var(--z-base);
+  border-block-start: var(--rule-hair) solid var(--color-rule-2);
+}
+
+.lp__band:first-of-type {
+  border-block-start: 0;
+}
+
+.lp__shell {
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.lp__grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.lp__label {
+  font-family: var(--font-label);
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-neutral);
+  line-height: 1.4;
+}
+
+.lp h1,
+.lp h2,
+.lp h3 {
+  font-family: var(--font-display);
+  font-style: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+  text-wrap: balance;
+}
+
+.lp__title {
+  font-weight: var(--display-weight);
+  font-size: var(--text-display-s);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--lh-tight);
+  text-transform: lowercase;
+  margin: 0;
+}
+
+/* Das Punktquadrat: der kleinste Stempel des Kastens, dort wo ein Punkt stünde. */
+.lp__period {
+  display: inline-block;
+  width: 0.52em;
+  height: 0.52em;
+  background: var(--color-accent);
+  vertical-align: baseline;
+  margin-inline-start: 0.12em;
+}
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.lp__hero {
+  padding-block: var(--space-2xl) var(--space-4xl);
+}
+
+.lp__hero .lp__display {
+  grid-column: 1 / span 11;
+  margin: 0;
+  font-weight: var(--display-weight);
+  font-size: var(--text-display);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--lh-display);
+  text-transform: lowercase;
+}
+
+.lp__lede {
+  grid-column: 1 / span 6;
+  margin: var(--space-xl) 0 0;
+  font-size: var(--text-lg);
+  line-height: 1.45;
+  max-width: 58ch;
+  color: var(--color-ink-2);
+}
+
+.lp__cta-row {
+  grid-column: 1 / span 8;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin-block-start: var(--space-xl);
+}
+
+.lp__meta {
+  grid-column: 9 / span 4;
+  align-self: end;
+  margin-block-start: var(--space-xl);
+  padding-inline-start: var(--space-md);
+  border-inline-start: var(--rule-hair) solid var(--color-rule-2);
+}
+
+.lp__meta dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2xs) var(--space-md);
+}
+
+.lp__meta dt {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.lp__meta dd {
+  margin: 0;
+  color: var(--color-neutral);
+  font-size: var(--text-sm);
+}
+
+/* ── Knöpfe und Links ────────────────────────────────────────────────────── */
+.lp__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--space-sm) var(--space-xl);
+  border: var(--rule-ink) solid var(--color-ink);
+  border-radius: var(--radius-none);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-micro) var(--ease-out),
+    color var(--dur-micro) var(--ease-out),
+    transform var(--dur-micro) var(--ease-out);
+}
+
+.lp__button:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+.lp__button:focus-visible {
+  outline: var(--rule-ink) solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+.lp__button:active {
+  transform: translateY(1px);
+}
+
+.lp__button[aria-disabled="true"],
+.lp__button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.lp__link {
+  color: var(--color-ink);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule-2);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition:
+    text-decoration-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.lp__link:hover {
+  color: var(--color-accent);
+  text-decoration-color: var(--color-accent);
+}
+
+.lp__link:focus-visible {
+  outline: var(--rule-ink) solid var(--color-focus);
+  outline-offset: 3px;
+  text-decoration-color: var(--color-accent);
+}
+
+.lp__link:active {
+  color: var(--color-ink-2);
+}
+
+/* ── Thesen ──────────────────────────────────────────────────────────────── */
+.lp__claims {
+  padding-block: var(--space-3xl) var(--space-2xl);
+}
+
+.lp__claim {
+  grid-column: 1 / span 12;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: start;
+  padding-block: var(--space-xl);
+  border-block-start: var(--rule-hair) solid var(--color-rule);
+}
+
+.lp__claim:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.lp__claim-index {
+  grid-column: 1 / span 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp__claim-text {
+  grid-column: 2 / span 7;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.lp__claim-note {
+  grid-column: 10 / span 3;
+  margin: 0;
+  color: var(--color-neutral);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* ── Beispiel: echter Text, echte Fundstellen ────────────────────────────── */
+.lp__sample {
+  padding-block: var(--space-3xl);
+}
+
+.lp__sample-head {
+  grid-column: 1 / span 12;
+  margin-block-end: var(--space-xl);
+}
+
+.lp__sample-text {
+  grid-column: 1 / span 7;
+  padding-inline-end: var(--space-xl);
+}
+
+.lp__sample-text p {
+  margin: var(--space-md) 0 0;
+  font-size: var(--text-xl);
+  line-height: 1.65;
+  max-width: 60ch;
+}
+
+.lp__mark {
+  background: linear-gradient(
+    180deg,
+    transparent 38%,
+    var(--color-accent-soft) 38%,
+    var(--color-accent-soft) 92%,
+    transparent 92%
+  );
+  box-shadow: inset 0 -2px 0 0 var(--color-accent);
+  color: inherit;
+}
+
+.lp__sample-findings {
+  grid-column: 8 / span 5;
+  padding-inline-start: var(--space-lg);
+  border-inline-start: var(--rule-hair) solid var(--color-rule-2);
+  margin: 0;
+  list-style: none;
+}
+
+.lp__finding {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2xs) var(--space-sm);
+  padding-block: var(--space-sm);
+  border-block-start: var(--rule-hair) solid var(--color-rule);
+}
+
+.lp__finding:first-child {
+  border-block-start: 0;
+  padding-block-start: 0;
+}
+
+.lp__finding-cat {
+  grid-column: 1 / span 2;
+}
+
+.lp__finding-quote {
+  grid-column: 1 / span 2;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.lp__finding-msg {
+  grid-column: 1 / span 2;
+  color: var(--color-neutral);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.lp__sample-foot {
+  grid-column: 1 / span 12;
+  margin-block-start: var(--space-xl);
+  padding-block-start: var(--space-md);
+  border-block-start: var(--rule-ink) solid var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md) var(--space-xl);
+}
+
+/* ── Die Platte: der eine Poster-Moment ──────────────────────────────────── */
+.lp__plate {
+  position: relative;
+  z-index: var(--z-base);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  overflow: clip;
+  padding-block: var(--space-3xl);
+}
+
+.lp__plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  background-clip: content-box;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-rail-on-plate) 0,
+    var(--color-rail-on-plate) 1px,
+    transparent 1px,
+    transparent calc(100% / 12)
+  );
+}
+
+.lp__plate .lp__shell {
+  position: relative;
+  z-index: var(--z-raised);
+}
+
+.lp__plate-claim {
+  grid-column: 1 / span 7;
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: var(--text-display-s);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--lh-tight);
+  text-transform: lowercase;
+  color: var(--color-accent-ink);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* Das Punktquadrat auf der Platte trägt die Papierfarbe, nicht das Signal. */
+.lp__period--paper {
+  background: var(--color-accent-ink);
+}
+
+.lp__scale {
+  grid-column: 1 / span 12;
+  display: grid;
+  grid-template-columns: subgrid;
+  margin-block-start: var(--space-2xl);
+  border-block-start: var(--rule-hair) solid var(--color-rail-on-plate);
+}
+
+.lp__step {
+  padding-block: var(--space-lg);
+  padding-inline-end: var(--space-md);
+  border-inline-start: var(--rule-hair) solid var(--color-rail-on-plate);
+  padding-inline-start: var(--space-md);
+}
+
+.lp__step:nth-child(1) {
+  grid-column: 1 / span 4;
+}
+
+.lp__step:nth-child(2) {
+  grid-column: 5 / span 4;
+}
+
+.lp__step:nth-child(3) {
+  grid-column: 9 / span 4;
+}
+
+.lp__step-range {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: var(--text-2xl);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+.lp__step-label {
+  margin: var(--space-2xs) 0 var(--space-md);
+  font-size: var(--text-md);
+  color: var(--color-accent-ink);
+  opacity: 0.86;
+}
+
+/* Stufenbalken: drei Rechtecke, deren Breite die drei Stufen abbildet. */
+.lp__bar {
+  height: var(--space-xs);
+  background: var(--color-accent-ink);
+  opacity: 0.9;
+}
+
+.lp__step:nth-child(1) .lp__bar {
+  width: 29%;
+}
+
+.lp__step:nth-child(2) .lp__bar {
+  width: 64%;
+}
+
+.lp__step:nth-child(3) .lp__bar {
+  width: 100%;
+}
+
+/* ── Ablauf: vier Zeilen, die Ziffer hängt in den Rand ───────────────────── */
+.lp__flow {
+  padding-block: var(--space-3xl);
+}
+
+.lp__flow-head {
+  grid-column: 1 / span 12;
+  margin-block-end: var(--space-2xl);
+}
+
+.lp__stage {
+  grid-column: 1 / span 12;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  padding-block: var(--space-xl);
+  border-block-start: var(--rule-hair) solid var(--color-rule-2);
+}
+
+.lp__stage-numeral {
+  grid-column: 1 / span 2;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-numeral);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  color: color-mix(in oklab, var(--color-ink) 9%, transparent);
+  user-select: none;
+}
+
+.lp__stage-title {
+  grid-column: 3 / span 4;
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.15;
+  text-transform: lowercase;
+}
+
+.lp__stage-body {
+  grid-column: 8 / span 5;
+  margin: 0;
+  color: var(--color-ink-2);
+  max-width: 56ch;
+}
+
+.lp__stage-body .lp__label {
+  display: block;
+  margin-block-start: var(--space-xs);
+}
+
+/* ── Wo der Text liegt: zwei geregelte Spalten ───────────────────────────── */
+.lp__trust {
+  padding-block: var(--space-3xl);
+}
+
+.lp__trust-head {
+  grid-column: 1 / span 12;
+  margin-block-end: var(--space-2xl);
+}
+
+.lp__trust-col {
+  padding-block-start: var(--space-lg);
+  padding-inline-end: var(--space-xl);
+  border-block-start: var(--rule-ink) solid var(--color-ink);
+}
+
+.lp__trust-col--local {
+  grid-column: 1 / span 6;
+}
+
+.lp__trust-col--api {
+  grid-column: 7 / span 6;
+  padding-inline-start: var(--space-xl);
+  padding-inline-end: 0;
+  border-inline-start: var(--rule-hair) solid var(--color-rule-2);
+}
+
+.lp__trust-col h3 {
+  margin: var(--space-sm) 0 var(--space-md);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  text-transform: lowercase;
+}
+
+.lp__trust-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp__trust-list li {
+  padding-block: var(--space-sm);
+  border-block-start: var(--rule-hair) solid var(--color-rule);
+  color: var(--color-ink-2);
+}
+
+/* ── Schluss ─────────────────────────────────────────────────────────────── */
+.lp__close {
+  padding-block: var(--space-3xl) var(--space-4xl);
+}
+
+.lp__close-title {
+  grid-column: 1 / span 8;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  font-size: var(--text-display-s);
+  letter-spacing: var(--tracking-display);
+  line-height: var(--lh-tight);
+  text-transform: lowercase;
+}
+
+.lp__close-action {
+  grid-column: 1 / span 8;
+  margin-block-start: var(--space-xl);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+}
+
+.lp__close-note {
+  grid-column: 1 / span 6;
+  margin: var(--space-md) 0 0;
+  color: var(--color-neutral);
+  font-size: var(--text-sm);
+}
+
+/* ── Kolophon (Ft4) ──────────────────────────────────────────────────────── */
+.lp__colophon {
+  padding-block: var(--space-xl) var(--space-2xl);
+  border-block-start: var(--rule-ink) solid var(--color-ink);
+}
+
+.lp__colophon p {
+  grid-column: 1 / span 9;
+  margin: 0;
+  color: var(--color-neutral);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  max-width: 72ch;
+}
+
+.lp__colophon .lp__link {
+  white-space: normal;
+}
+
+/* ── Schmale Blätter ─────────────────────────────────────────────────────── */
+@media (max-width: 64rem) {
+  .lp__hero .lp__display,
+  .lp__lede,
+  .lp__cta-row,
+  .lp__meta,
+  .lp__claim-text,
+  .lp__claim-note,
+  .lp__sample-text,
+  .lp__sample-findings,
+  .lp__plate-claim,
+  .lp__stage-title,
+  .lp__stage-body,
+  .lp__trust-col,
+  .lp__trust-col--local,
+  .lp__trust-col--api,
+  .lp__close-title,
+  .lp__close-action,
+  .lp__close-note,
+  .lp__colophon p {
+    grid-column: 1 / span 12;
+  }
+
+  .lp__meta {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    border-block-start: var(--rule-hair) solid var(--color-rule-2);
+    padding-block-start: var(--space-md);
+  }
+
+  .lp__sample-text {
+    padding-inline-end: 0;
+  }
+
+  .lp__sample-findings {
+    margin-block-start: var(--space-xl);
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    border-block-start: var(--rule-hair) solid var(--color-rule-2);
+    padding-block-start: var(--space-md);
+  }
+
+  .lp__claim-index {
+    grid-column: 1 / span 12;
+  }
+
+  .lp__claim-note {
+    margin-block-start: var(--space-md);
+  }
+
+  .lp__stage-numeral {
+    grid-column: 1 / span 12;
+    font-size: clamp(3.5rem, 14vw, 6rem);
+  }
+
+  .lp__stage-title {
+    margin-block-start: var(--space-xs);
+  }
+
+  .lp__stage-body {
+    margin-block-start: var(--space-sm);
+  }
+
+  .lp__trust-col--api {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    margin-block-start: var(--space-xl);
+  }
+
+  .lp__step:nth-child(1),
+  .lp__step:nth-child(2),
+  .lp__step:nth-child(3) {
+    grid-column: 1 / span 12;
+  }
+
+  .lp__step {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+    border-block-start: var(--rule-hair) solid var(--color-rail-on-plate);
+  }
+}
+
+@media (max-width: 48rem) {
+  .lp {
+    --gutter: var(--space-md);
+  }
+
+  .lp__rails {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-rule) 0,
+      var(--color-rule) 1px,
+      transparent 1px,
+      transparent calc(100% / 4)
+    );
+  }
+
+  .lp__plate::before {
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-rail-on-plate) 0,
+      var(--color-rail-on-plate) 1px,
+      transparent 1px,
+      transparent calc(100% / 4)
+    );
+  }
+
+  .lp__hero {
+    padding-block: var(--space-xl) var(--space-3xl);
+  }
+
+  .lp__claims,
+  .lp__sample,
+  .lp__flow,
+  .lp__trust,
+  .lp__plate {
+    padding-block: var(--space-2xl);
+  }
+}
+
+/* Erst auf dem Telefon füllt der Knopf die Spalte. */
+@media (max-width: 30rem) {
+  .lp__button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp *,
+  .lp *::before,
+  .lp *::after {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+}

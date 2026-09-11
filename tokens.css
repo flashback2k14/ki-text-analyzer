@@ -1,0 +1,74 @@
+/* Hallmark · theme: Grid (signal ink: ultramarine) · genre: editorial · tone: austere
+ * Portabler Token-Export der Landing Page (src/components/landing/landing.css).
+ * Die Seite selbst hält dieselben Werte auf .lp, damit sie die App-Tokens nicht überschreibt.
+ */
+
+:root {
+  /* Farbe – ein Blatt, eine Tinte, ein Signal */
+  --color-paper: oklch(99% 0.003 255);
+  --color-paper-2: oklch(97.2% 0.003 255);
+  --color-paper-3: oklch(94.5% 0.004 255);
+  --color-rule: oklch(88% 0.004 255);
+  --color-rule-2: oklch(72% 0.005 255);
+  --color-muted: oklch(48% 0.006 255);
+  --color-neutral: oklch(34% 0.006 255);
+  --color-ink-2: oklch(26% 0.008 255);
+  --color-ink: oklch(16% 0.01 255);
+  --color-accent: oklch(45% 0.19 264);
+  --color-accent-ink: oklch(99% 0.003 255);
+  --color-accent-soft: oklch(45% 0.19 264 / 0.14);
+  --color-focus: oklch(45% 0.19 264);
+  --color-rail-on-plate: oklch(99% 0.003 255 / 0.16);
+
+  /* Schrift – eine Familie, Unterschiede aus Gewicht und Größe */
+  --font-display: "Archivo", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Archivo", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Archivo", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --display-weight: 800;
+
+  --text-display: clamp(2.5rem, 8.5vw, 5.25rem);
+  --text-display-s: clamp(1.75rem, 3.4vw + 0.5rem, 3rem);
+  --text-numeral: clamp(5rem, 16vw, 13rem);
+  --text-2xl: clamp(1.5rem, 2vw + 0.5rem, 2rem);
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --text-label: 0.75rem;
+
+  --tracking-display: -0.045em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.09em;
+
+  --lh-display: 0.92;
+  --lh-tight: 1.1;
+  --lh-body: 1.55;
+
+  /* Raum – 4-pt-Skala */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  --shell: 80rem;
+  --gutter: var(--space-lg);
+  --rule-hair: 1px;
+  --rule-ink: 2px;
+  --radius-none: 0;
+
+  /* Bewegung */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms;
+  --dur-short: 200ms;
+
+  --z-base: 1;
+  --z-raised: 10;
+}
