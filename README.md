@@ -49,7 +49,7 @@ Der Analyzer verlangt eine Anmeldung; ohne Sitzung zeigt die Startseite eine Lan
 - **Passwörter** werden mit scrypt gehasht.
 - **API-Keys** werden mit AES-256-GCM verschlüsselt gespeichert; der Schlüssel wird aus `APP_SECRET` abgeleitet. Wird `APP_SECRET` geändert, sind alle gespeicherten Keys unlesbar und müssen neu eingetragen werden. Die Konto-Seite zeigt das an.
 - `/api/health` ist ohne Anmeldung erreichbar (Docker-Healthcheck).
-- **Die Startseite `/`** ist öffentlich. Ohne Sitzung steht dort die Landing Page (`src/components/landing/`), mit Sitzung direkt der Analyzer. Gestaltet ist sie nach dem Skill [Hallmark](https://github.com/nutlope/hallmark); die Entwurfsentscheidungen liegen in `.hallmark/`, die Design-Tokens zusätzlich portabel in `tokens.css`.
+- **Die Startseite `/`** ist öffentlich. Ohne Sitzung steht dort die Landing Page (`src/components/landing/`), mit Sitzung direkt der Analyzer. Gestaltet ist sie nach dem Skill [Hallmark](https://github.com/nutlope/hallmark), der als Projekt-Skill unter `.claude/skills/hallmark/` mitliegt und für alle weiteren Design-Entscheidungen gilt (siehe `AGENTS.md`). Die Entwurfsentscheidungen der bisherigen Läufe stehen in `.hallmark/`, die Design-Tokens portabel in `tokens.css`.
 
 Im Konto kann jeder Nutzer seinen Anthropic-API-Key speichern, testen und löschen, das Claude-Modell wählen und das Passwort ändern. Ohne eigenen Key greift `ANTHROPIC_API_KEY` aus der Umgebung, ohne Modellwahl `ANTHROPIC_MODEL`.
 
