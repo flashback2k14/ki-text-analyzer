@@ -23,3 +23,8 @@ dieselben Werte auf `.lp` in `src/components/landing/landing.css`.
 Deutsche Texte in der Oberfläche und in der Dokumentation folgen dem Skill `vermenschlichen`:
 sachlich, ohne Werbesprache, ohne Fazit-Baustein, ohne gehäufte Gedankenstriche. Bei dieser
 App ist das keine Stilfrage — sie prüft genau diese Muster.
+
+# Arbeitsweise
+
+Jede Änderung bekommt einen eigenen Branch, der vom aktuellen `main` ausgeht, und am Ende
+einen Pull Request. Keine weiteren Commits auf einen Branch, dessen PR schon gemergt ist.
