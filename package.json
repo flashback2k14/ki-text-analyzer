@@ -10,7 +10,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "fixtures": "tsx scripts/make-fixtures.ts",
-    "icons": "tsx scripts/make-icons.ts"
+    "icons": "tsx scripts/make-icons.ts",
+    "experiment:false-positives": "tsx --env-file-if-exists=.env scripts/false-positives/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
