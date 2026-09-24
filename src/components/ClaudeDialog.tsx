@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ApiError, LlmModelOption, LlmOptionsResponse } from "@/lib/client-types";
 import { estimateCost } from "@/lib/costs/estimate";
-import { describeRate, formatMoney, formatPerMtok, formatTokens } from "@/lib/costs/format";
+import { describeRate, formatDateTime, formatMoney, formatMoneyCents, formatPerMtok, formatTokens } from "@/lib/costs/format";
 import { MODEL_ID_PATTERN } from "@/lib/llm/models";
 import { primaryButton, secondaryButton } from "./FormField";
 
@@ -68,6 +69,10 @@ export function ClaudeDialog({ onClose, onStart, suggestChars, assessChars, find
     () => (selected ? estimateCost({ suggestChars, assessChars, findingsCount, assess: true }, selected.price) : null),
     [selected, suggestChars, assessChars, findingsCount],
   );
+
+  const balance = options?.balance ?? null;
+  const priced = Boolean(selected?.price && estimate);
+  const tooLow = balance !== null && (balance.remainingUsd <= 0 || (priced && estimate !== null && estimate.highUsd > balance.remainingUsd));
 
   const canStart = Boolean(options && options.llmAvailable && selectedModel && customValid);
 
@@ -148,6 +153,40 @@ export function ClaudeDialog({ onClose, onStart, suggestChars, assessChars, find
             <p className="text-muted">Für „{selectedModel}“ ist kein Preis hinterlegt. Token werden erfasst, aber ohne Betrag.</p>
           ) : (
             <p className="text-muted">Bitte ein Modell wählen.</p>
+          )}
+          {options && (
+            <div className="mt-2 border-t border-border pt-2">
+              {balance ? (
+                <>
+                  <p>
+                    Verfügbares Guthaben: <span className="font-medium tabular-nums">ca. {formatMoneyCents(balance.remainingUsd, rate)}</span>
+                    {priced && estimate && (
+                      <span className="text-muted">
+                        , danach ca. <span className="tabular-nums">{formatMoneyCents(balance.remainingUsd - estimate.highUsd, rate)}</span> bis{" "}
+                        <span className="tabular-nums">{formatMoneyCents(balance.remainingUsd - estimate.lowUsd, rate)}</span>
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    Stand aus dem Konto vom {formatDateTime(balance.asOf)}, abzüglich der seitdem gebuchten Durchläufe.
+                    {balance.unpriced && " Durchläufe ohne hinterlegten Preis fehlen im Abzug."}
+                  </p>
+                  {tooLow && (
+                    <p className="mt-1 text-xs text-red-700 dark:text-red-300">
+                      Das Guthaben reicht laut Schätzung womöglich nicht. Falls inzwischen aufgeladen wurde, den neuen Stand im Konto eintragen.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-xs text-muted">
+                  Kein Guthaben hinterlegt. Eintragen lässt es sich unter{" "}
+                  <Link href="/konto" className="underline hover:text-accent">
+                    Konto
+                  </Link>
+                  .
+                </p>
+              )}
+            </div>
           )}
         </div>
 
