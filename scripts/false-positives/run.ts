@@ -5,6 +5,8 @@
  *
  * Umgebung (auch aus .env):
  *   TYPESAFE_API_KEY          aktiviert Jev; optional TYPESAFE_BASE_URL, TYPESAFE_MODEL (jev-latest)
+ *                             Ohne eigenes Konto: TYPESAFE_BASE_URL=https://classifier.dev und
+ *                             TYPESAFE_API_KEY=unused (Weiterleitung an api.typesafe.ai, nur für Testtexte)
  *   ANTHROPIC_API_KEY         aktiviert Claude; optional EXPERIMENT_CLAUDE_MODEL (claude-haiku-4-5)
  *
  * Ohne Keys listet der Bericht nur die Fundstellen mit Soll-Urteil. Der Text der Testfälle geht

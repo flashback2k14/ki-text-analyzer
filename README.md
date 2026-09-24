@@ -138,6 +138,14 @@ Die Fundstellen stammen aus zwei Quellen. Die Fixtures unter `tests/fixtures` li
 TYPESAFE_API_KEY=… ANTHROPIC_API_KEY=… npm run experiment:false-positives -- --out bericht.md
 ```
 
+TypeSafe nimmt derzeit keine neuen Konten an. Ohne eigenen Key ist Jev über classifier.dev erreichbar: `POST https://classifier.dev/v1/systemone` reicht die Anfrage unverändert an `api.typesafe.ai` weiter und nutzt dabei den Key von classifier.dev. Andere Modelle springen auf diesem Weg nicht ein. Ein eigener Key wird verworfen, die Variable muss aber gesetzt sein:
+
+```bash
+TYPESAFE_BASE_URL=https://classifier.dev TYPESAFE_API_KEY=unused ANTHROPIC_API_KEY=… npm run experiment:false-positives -- --out bericht.md
+```
+
+Anonym erlaubt classifier.dev 20.000 Entscheidungen am Tag, der Versuch braucht 56. Der Text läuft dabei zusätzlich über einen Dienst ohne Vertrag. Für die Testfälle ist das vertretbar, für echte Dokumente nicht.
+
 Ohne Key wird der jeweilige Prüfer übersprungen. Der Bericht nennt je Prüfer, wie viele Fehlalarme erkannt und wie viele echte Treffer fälschlich verworfen wurden, dazu Median und p90 der Antwortzeit, Token und bei Claude die Kosten. Mit `TYPESAFE_MODEL` und `EXPERIMENT_CLAUDE_MODEL` lassen sich andere Modelle wählen. Der Text der Testfälle geht dabei an beide Anbieter; echte Dokumente gehören nicht in diesen Versuch.
 
 ## Projektstruktur
