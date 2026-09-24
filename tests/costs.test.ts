@@ -168,3 +168,43 @@ describe("Formatierung", () => {
     expect(describeRate({ rate: 1.08, fetchedAt: 0, source: "env" })).toContain("USD_EUR_RATE");
   });
 });
+
+describe("Guthaben", () => {
+  it("zieht nur Kosten ab dem Stichtag und nur des eigenen Users ab", async () => {
+    const { getBalance, setBalance } = await import("@/lib/costs/balance");
+    const db = openDatabase(":memory:");
+    const a = createUser(db, "a@b.de", "h");
+    const b = createUser(db, "b@b.de", "h");
+    expect(getBalance(db, a.id)).toBeNull();
+    recordUsage(db, { userId: a.id, model: "claude-opus-5", purpose: "suggest", usage: usage({}), costUsd: 1, createdAt: 500 });
+    recordUsage(db, { userId: a.id, model: "claude-opus-5", purpose: "suggest", usage: usage({}), costUsd: 0.25, createdAt: 1000 });
+    recordUsage(db, { userId: b.id, model: "claude-opus-5", purpose: "suggest", usage: usage({}), costUsd: 5, createdAt: 1500 });
+    setBalance(db, a.id, 10, 1000);
+    expect(getBalance(db, a.id)).toEqual({ amountUsd: 10, asOf: 1000, spentUsd: 0.25, remainingUsd: 9.75, unpriced: false });
+  });
+
+  it("meldet Durchläufe ohne Preis und überschreibt den alten Stand", async () => {
+    const { clearBalance, getBalance, setBalance } = await import("@/lib/costs/balance");
+    const db = openDatabase(":memory:");
+    const a = createUser(db, "a@b.de", "h");
+    setBalance(db, a.id, 10, 0);
+    recordUsage(db, { userId: a.id, model: "x", purpose: "assess", usage: usage({}), costUsd: null, createdAt: 10 });
+    expect(getBalance(db, a.id)?.unpriced).toBe(true);
+    setBalance(db, a.id, 20, 100);
+    expect(getBalance(db, a.id)).toMatchObject({ amountUsd: 20, spentUsd: 0, remainingUsd: 20, unpriced: false });
+    clearBalance(db, a.id);
+    expect(getBalance(db, a.id)).toBeNull();
+  });
+});
+
+describe("BalanceSchema", () => {
+  it("akzeptiert Komma und leeren Zeitpunkt", async () => {
+    const { BalanceSchema } = await import("@/lib/auth/schemas");
+    const parsed = BalanceSchema.parse({ amount: " 12,50 ", asOf: "" });
+    expect(parsed.amount).toBe(12.5);
+    expect(Math.abs(parsed.asOf - Date.now())).toBeLessThan(5000);
+    expect(BalanceSchema.safeParse({ amount: "-3", asOf: "" }).success).toBe(false);
+    expect(BalanceSchema.safeParse({ amount: "1,234", asOf: "" }).success).toBe(false);
+    expect(BalanceSchema.safeParse({ amount: "5", asOf: String(Date.now() + 86_400_000) }).success).toBe(false);
+  });
+});

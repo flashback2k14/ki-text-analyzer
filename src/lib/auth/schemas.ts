@@ -42,6 +42,22 @@ export const ModelSchema = z.object({
     .refine((v) => v === "" || MODEL_ID_PATTERN.test(v), "Ungültige Modell-ID. Erwartet wird z. B. „claude-sonnet-5“."),
 });
 
+/** Kontostand laut Anthropic Console. `asOf` ist ein Zeitstempel in ms, leer heißt „jetzt“. */
+export const BalanceSchema = z.object({
+  amount: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/\s/g, "").replace(",", "."))
+    .pipe(z.string().regex(/^\d{1,7}(\.\d{1,2})?$/, "Bitte einen Betrag wie 12,50 angeben."))
+    .transform(Number),
+  asOf: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || /^\d+$/.test(v), "Ungültiger Zeitpunkt.")
+    .transform((v) => (v === "" ? Date.now() : Number(v)))
+    .refine((v) => v <= Date.now() + 60_000, "Der Zeitpunkt liegt in der Zukunft."),
+});
+
 export const ChangePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Bitte das aktuelle Passwort eingeben."),

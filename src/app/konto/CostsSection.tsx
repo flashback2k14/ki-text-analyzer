@@ -1,8 +1,10 @@
+import { getBalance } from "@/lib/costs/balance";
 import { getUsdEurRate } from "@/lib/costs/exchange";
-import { describeRate, formatDateTime, formatMoney, formatMonth, formatTokens, formatUsd } from "@/lib/costs/format";
+import { describeRate, formatDateTime, formatMoney, formatMoneyCents, formatMonth, formatTokens, formatUsd } from "@/lib/costs/format";
 import { monthlySummary, recentUsage } from "@/lib/costs/usage";
 import { getDb } from "@/lib/db";
 import { modelLabel } from "@/lib/llm/models";
+import { BalanceForm } from "./BalanceForm";
 
 const PURPOSE_LABEL = { suggest: "Alternativen", assess: "Einschätzung" } as const;
 
@@ -16,10 +18,17 @@ export async function CostsSection({ userId }: { userId: string }) {
   const recent = recentUsage(db, userId, 10);
   const rate = await getUsdEurRate(db);
   const thisMonth = months.find((m) => m.month === currentMonthKey());
+  const balance = getBalance(db, userId);
 
   const money = (usd: number) => (
     <span title={rate ? formatUsd(usd) : undefined} className="tabular-nums">
       {formatMoney(usd, rate)}
+    </span>
+  );
+
+  const cents = (usd: number) => (
+    <span title={rate ? formatMoneyCents(usd, null) : undefined} className="tabular-nums">
+      {formatMoneyCents(usd, rate)}
     </span>
   );
 
@@ -36,6 +45,27 @@ export async function CostsSection({ userId }: { userId: string }) {
         <span className="text-3xl font-semibold tabular-nums">{formatMoney(thisMonth?.costUsd ?? 0, rate)}</span>
         <span className="text-sm text-muted">im {formatMonth(currentMonthKey())}</span>
         {thisMonth?.unpriced && <span className="text-xs text-muted">(enthält Durchläufe ohne hinterlegten Preis)</span>}
+      </div>
+
+      <div className="mt-4 rounded-lg border border-border p-4">
+        <h3 className="text-sm font-semibold">Verfügbares Guthaben</h3>
+        {balance ? (
+          <>
+            <p className="mt-1 flex flex-wrap items-baseline gap-x-3">
+              <span className={`text-2xl font-semibold ${balance.remainingUsd < 0 ? "text-red-700 dark:text-red-300" : ""}`}>ca. {cents(balance.remainingUsd)}</span>
+              <span className="text-sm text-muted">
+                Stand {cents(balance.amountUsd)} am {formatDateTime(balance.asOf)}, seitdem {money(balance.spentUsd)} gebucht
+              </span>
+            </p>
+            {balance.remainingUsd < 0 && <p className="mt-1 text-xs text-muted">Seit dem Stichtag wurde mehr gebucht als eingetragen. Vermutlich wurde inzwischen aufgeladen; bitte den aktuellen Stand aus der Console eintragen.</p>}
+            {balance.unpriced && <p className="mt-1 text-xs text-muted">Seit dem Stichtag gab es Durchläufe mit einem Modell ohne hinterlegten Preis. Deren Kosten fehlen im Abzug.</p>}
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-muted">
+            Anthropic stellt den Kontostand eines API-Keys nicht über die API bereit. Trag den Betrag aus der Console ein; die App zieht davon alle danach gebuchten Durchläufe ab. Nach einer Aufladung einfach den neuen Stand eintragen.
+          </p>
+        )}
+        <BalanceForm hasBalance={balance !== null} />
       </div>
 
       {months.length === 0 ? (

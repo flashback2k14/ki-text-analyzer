@@ -6,6 +6,7 @@ import { CATEGORIES, CATEGORY_LABELS } from "@/lib/analysis/types";
 import type { RunUsage } from "@/lib/client-types";
 import { describeRate, formatMoney, formatTokens, formatUsd } from "@/lib/costs/format";
 import type { Assessment } from "@/lib/llm/suggest";
+import { AssessmentBody } from "./AssessmentBody";
 
 interface Props {
   fileName: string;
@@ -155,28 +156,7 @@ export function SummaryPanel(props: Props) {
             <p className="font-medium">Einschätzung des Sprachmodells{llmModel ? ` (${llmModel})` : ""}</p>
             <span className="rounded-full border border-border px-2.5 py-0.5 text-xs">Wahrscheinlichkeit: {assessment.wahrscheinlichkeit}</span>
           </div>
-          <p className="mt-2 leading-relaxed">{assessment.einschaetzung}</p>
-          {assessment.auffaelligkeiten.length > 0 && (
-            <>
-              <p className="mt-3 text-xs uppercase tracking-wide text-muted">Auffälligkeiten</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                {assessment.auffaelligkeiten.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          {assessment.staerken.length > 0 && (
-            <>
-              <p className="mt-3 text-xs uppercase tracking-wide text-muted">Spricht für menschlichen Ursprung</p>
-              <ul className="mt-1 list-disc space-y-1 pl-5">
-                {assessment.staerken.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ul>
-            </>
-          )}
-          {assessment.truncated && <p className="mt-2 text-xs text-muted">Der Text wurde für die Einschätzung auf Anfang, Mitte und Ende gekürzt.</p>}
+          <AssessmentBody assessment={assessment} />
         </div>
       )}
     </section>

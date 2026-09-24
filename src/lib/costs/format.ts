@@ -4,6 +4,8 @@ import type { ExchangeRate } from "./types";
 const eur = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const usd = new Intl.NumberFormat("de-DE", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 4 });
 const eurPerMtok = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const eurCents = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const usdCents = new Intl.NumberFormat("de-DE", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const integer = new Intl.NumberFormat("de-DE");
 const rateFormat = new Intl.NumberFormat("de-DE", { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
@@ -49,4 +51,9 @@ export function describeRate(rate: ExchangeRate | null): string {
 /** Betrag in Euro, ohne Kurs in USD. */
 export function formatMoney(usdValue: number, rate: ExchangeRate | null): string {
   return rate ? formatEur(usdValue / rate.rate) : formatUsd(usdValue);
+}
+
+/** Wie formatMoney, aber auf Cent gerundet (für Guthaben). */
+export function formatMoneyCents(usdValue: number, rate: ExchangeRate | null): string {
+  return rate ? eurCents.format(usdValue / rate.rate) : usdCents.format(usdValue);
 }

@@ -57,6 +57,28 @@ const MIGRATIONS: string[] = [
   );
   ${priceSeedSql()}
   `,
+  `
+  CREATE TABLE IF NOT EXISTS assessments (
+    id                 TEXT PRIMARY KEY,
+    user_id            TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    usage_id           TEXT REFERENCES llm_usage(id) ON DELETE SET NULL,
+    created_at         INTEGER NOT NULL,
+    model              TEXT NOT NULL,
+    file_name          TEXT,
+    wahrscheinlichkeit TEXT NOT NULL,
+    einschaetzung      TEXT NOT NULL,
+    auffaelligkeiten   TEXT NOT NULL,
+    staerken           TEXT NOT NULL,
+    truncated          INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS assessments_user_created ON assessments(user_id, created_at);
+  CREATE TABLE IF NOT EXISTS credit_balances (
+    user_id    TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    amount_usd REAL NOT NULL,
+    as_of      INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  `,
 ];
 
 /** Öffnet die Datenbank, legt Verzeichnis und Schema an. ":memory:" für Tests. */

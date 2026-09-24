@@ -37,6 +37,7 @@ Vor jedem Claude-Aufruf öffnet sich ein Dialog. Er ist mit dem Modell aus den K
   Vorhandene Zeilen lassen sich mit `UPDATE` anpassen; die Startwerte überschreiben sie nicht. Für ein Modell ohne Preiszeile werden die Token erfasst, der Betrag bleibt leer.
 - Angezeigt wird in **Euro**. Der Kurs ist der EZB-Referenzkurs, den der Server einmal täglich von `ecb.europa.eu` holt und in `exchange_rates` ablegt. Ist der Abruf nicht möglich, gilt der zuletzt gespeicherte Kurs, sonst `USD_EUR_RATE` aus der `.env`, sonst werden die Beträge in USD gezeigt.
 - Im Konto stehen die Kosten nach Monat gruppiert, je Monat aufklappbar nach Modell, dazu die letzten Aufrufe.
+- **Guthaben:** Anthropic gibt den Kontostand eines API-Keys nicht über die API heraus. Im Konto lässt sich deshalb der Betrag aus der Anthropic Console (in USD, mit Zeitpunkt) eintragen. Angezeigt wird dieser Betrag abzüglich aller danach gebuchten Durchläufe (Tabelle `credit_balances`). Nach einer Aufladung trägt man den neuen Stand ein.
 
 Die Schätzung im Dialog ist grob: sie rechnet mit etwa 3,5 Zeichen je Token und festen Annahmen für Prompt-Overhead und Antwortlänge und zeigt deshalb eine Spanne.
 
@@ -51,7 +52,7 @@ Der Analyzer verlangt eine Anmeldung; ohne Sitzung zeigt die Startseite eine Lan
 - `/api/health` ist ohne Anmeldung erreichbar (Docker-Healthcheck).
 - **Die Startseite `/`** ist öffentlich. Ohne Sitzung steht dort die Landing Page (`src/components/landing/`), mit Sitzung direkt der Analyzer. Gestaltet ist sie nach dem Skill [Hallmark](https://github.com/nutlope/hallmark), der als Projekt-Skill unter `.claude/skills/hallmark/` mitliegt und für alle weiteren Design-Entscheidungen gilt (siehe `AGENTS.md`). Die Entwurfsentscheidungen der bisherigen Läufe stehen in `.hallmark/`, die Design-Tokens portabel in `tokens.css`.
 
-Im Konto kann jeder Nutzer seinen Anthropic-API-Key speichern, testen und löschen, das Claude-Modell wählen und das Passwort ändern. Ohne eigenen Key greift `ANTHROPIC_API_KEY` aus der Umgebung, ohne Modellwahl `ANTHROPIC_MODEL`.
+Im Konto kann jeder Nutzer seinen Anthropic-API-Key speichern, testen und löschen, das Claude-Modell wählen, das verfügbare Guthaben pflegen und das Passwort ändern. Jede Gesamteinschätzung von Claude wird in der Tabelle `assessments` gespeichert und steht im Konto unter „Gespeicherte Einschätzungen“, auch nachdem die Datei in der Analyse geschlossen wurde; einzelne Einträge lassen sich dort löschen. Ohne eigenen Key greift `ANTHROPIC_API_KEY` aus der Umgebung, ohne Modellwahl `ANTHROPIC_MODEL`.
 
 ## Lokal starten
 
