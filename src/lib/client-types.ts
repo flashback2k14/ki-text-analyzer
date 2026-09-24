@@ -37,6 +37,8 @@ export interface LlmOptionsResponse {
   models: LlmModelOption[];
   rate: ExchangeRate | null;
   llmAvailable: boolean;
+  /** Geschätztes Guthaben aus dem Konto, null ohne Eintrag. */
+  balance: { remainingUsd: number; asOf: number; unpriced: boolean } | null;
 }
 
 export interface ApiError {

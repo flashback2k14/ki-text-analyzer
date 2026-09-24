@@ -1,5 +1,6 @@
 import { getUserApiKey, requireUser, unauthorizedResponse } from "@/lib/auth/dal";
 import type { LlmOptionsResponse } from "@/lib/client-types";
+import { getBalance } from "@/lib/costs/balance";
 import { getUsdEurRate } from "@/lib/costs/exchange";
 import { listPrices } from "@/lib/costs/prices";
 import type { PriceRates } from "@/lib/costs/types";
@@ -43,11 +44,13 @@ export async function GET() {
     });
   }
 
+  const balance = getBalance(db, userId);
   const body: LlmOptionsResponse = {
     defaultModel,
     models,
     rate: await getUsdEurRate(db),
     llmAvailable: llmAvailableFor(getUserApiKey(userId)),
+    balance: balance ? { remainingUsd: balance.remainingUsd, asOf: balance.asOf, unpriced: balance.unpriced } : null,
   };
   return Response.json(body);
 }

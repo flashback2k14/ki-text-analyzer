@@ -37,7 +37,7 @@ Vor jedem Claude-Aufruf öffnet sich ein Dialog. Er ist mit dem Modell aus den K
   Vorhandene Zeilen lassen sich mit `UPDATE` anpassen; die Startwerte überschreiben sie nicht. Für ein Modell ohne Preiszeile werden die Token erfasst, der Betrag bleibt leer.
 - Angezeigt wird in **Euro**. Der Kurs ist der EZB-Referenzkurs, den der Server einmal täglich von `ecb.europa.eu` holt und in `exchange_rates` ablegt. Ist der Abruf nicht möglich, gilt der zuletzt gespeicherte Kurs, sonst `USD_EUR_RATE` aus der `.env`, sonst werden die Beträge in USD gezeigt.
 - Im Konto stehen die Kosten nach Monat gruppiert, je Monat aufklappbar nach Modell, dazu die letzten Aufrufe.
-- **Guthaben:** Anthropic gibt den Kontostand eines API-Keys nicht über die API heraus. Im Konto lässt sich deshalb der Betrag aus der Anthropic Console (in USD, mit Zeitpunkt) eintragen. Angezeigt wird dieser Betrag abzüglich aller danach gebuchten Durchläufe (Tabelle `credit_balances`). Nach einer Aufladung trägt man den neuen Stand ein.
+- **Guthaben:** Anthropic gibt den Kontostand eines API-Keys nicht über die API heraus. Im Konto lässt sich deshalb der Betrag aus der Anthropic Console (in USD, mit Zeitpunkt) eintragen. Angezeigt wird dieser Betrag abzüglich aller danach gebuchten Durchläufe (Tabelle `credit_balances`). Nach einer Aufladung trägt man den neuen Stand ein. Der Dialog vor jedem Claude-Aufruf zeigt dieses Guthaben ebenfalls, dazu den voraussichtlichen Stand nach dem Durchlauf, und warnt, wenn die obere Kostenschätzung darüber liegt.
 
 Die Schätzung im Dialog ist grob: sie rechnet mit etwa 3,5 Zeichen je Token und festen Annahmen für Prompt-Overhead und Antwortlänge und zeigt deshalb eine Spanne.
 
