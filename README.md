@@ -128,6 +128,26 @@ Das geladene Dokument samt Fundstellen, Claude-Alternativen, Einschätzung und K
 - Text in Kopf- und Fußzeilen, Fußnoten und Textfeldern außerhalb des Hauptteils wird nicht analysiert.
 - Kommentare werden an Absätze des Hauptteils gebunden. Trifft ein Offset keinen Textlauf (etwa bei Feldcodes), wird der ganze Absatz kommentiert.
 
+## Versuch: Fehlalarme mit einem Modell aussortieren
+
+Unter `scripts/false-positives/` liegt ein Vergleich, der nicht Teil der App ist. Er prüft, ob ein Modell Fundstellen der Regeln als Fehlalarm erkennt, etwa „nahtlose Stahlrohre“ oder „robuste Regression“. Verglichen werden TypeSafe Jev (`POST /v1/systemone`, je Fundstelle eine Choice-Frage) und Claude Haiku 4.5 mit Structured Outputs. Beide bekommen dieselbe Frage und dieselben zwei Antworten.
+
+Die Fundstellen stammen aus zwei Quellen. Die Fixtures unter `tests/fixtures` liefern echte Auffälligkeiten. Die Fälle in `scripts/false-positives/cases.ts` sind kurze, menschlich geschriebene Absätze, in denen eine Regel fälschlich anschlägt, dazu drei echte Treffer als Gegenprobe. Jede Fundstelle hat dort ein Soll-Urteil; `npm test` schlägt fehl, wenn eine Regeländerung neue Fundstellen erzeugt oder alte verschwinden lässt.
+
+```bash
+TYPESAFE_API_KEY=… ANTHROPIC_API_KEY=… npm run experiment:false-positives -- --out bericht.md
+```
+
+TypeSafe nimmt derzeit keine neuen Konten an. Ohne eigenen Key ist Jev über classifier.dev erreichbar: `POST https://classifier.dev/v1/systemone` reicht die Anfrage unverändert an `api.typesafe.ai` weiter und nutzt dabei den Key von classifier.dev. Andere Modelle springen auf diesem Weg nicht ein. Ein eigener Key wird verworfen, die Variable muss aber gesetzt sein:
+
+```bash
+TYPESAFE_BASE_URL=https://classifier.dev TYPESAFE_API_KEY=unused ANTHROPIC_API_KEY=… npm run experiment:false-positives -- --out bericht.md
+```
+
+Anonym erlaubt classifier.dev 20.000 Entscheidungen am Tag, der Versuch braucht 56. Der Text läuft dabei zusätzlich über einen Dienst ohne Vertrag. Für die Testfälle ist das vertretbar, für echte Dokumente nicht.
+
+Ohne Key wird der jeweilige Prüfer übersprungen. Der Bericht nennt je Prüfer, wie viele Fehlalarme erkannt und wie viele echte Treffer fälschlich verworfen wurden, dazu Median und p90 der Antwortzeit, Token und bei Claude die Kosten. Mit `TYPESAFE_MODEL` und `EXPERIMENT_CLAUDE_MODEL` lassen sich andere Modelle wählen. Der Text der Testfälle geht dabei an beide Anbieter; echte Dokumente gehören nicht in diesen Versuch.
+
 ## Projektstruktur
 
 ```
@@ -145,6 +165,7 @@ src/instrumentation.ts   Prüft APP_SECRET und öffnet die Datenbank beim Start
 tests/                   vitest-Tests und Fixture-Dokumente
 scripts/make-fixtures.ts erzeugt die Fixture-Dokumente
 scripts/make-icons.ts    erzeugt icon.svg, favicon.ico und apple-icon.png in src/app aus src/lib/logo.ts
+scripts/false-positives/ Versuch: Jev und Claude Haiku beim Aussortieren von Fehlalarmen
 ```
 
 ## Lizenz
