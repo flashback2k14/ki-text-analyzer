@@ -28,3 +28,7 @@ App ist das keine Stilfrage — sie prüft genau diese Muster.
 
 Jede Änderung bekommt einen eigenen Branch, der vom aktuellen `main` ausgeht, und am Ende
 einen Pull Request. Keine weiteren Commits auf einen Branch, dessen PR schon gemergt ist.
+
+Jeder Pull Request hebt die Version in `package.json` und `package-lock.json` an, als eigener
+Commit. Vorher fragen, welche Stelle steigen soll: Major, Minor oder Patch. Danach
+`npm version <stufe> --no-git-tag-version` ausführen.
