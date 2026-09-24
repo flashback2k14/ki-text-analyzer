@@ -96,8 +96,6 @@ export function LandingPage() {
 
   return (
     <main className={`${archivo.variable} lp`}>
-      <div className="lp__rails" aria-hidden="true" />
-
       <section className="lp__band lp__hero">
         <div className="lp__shell lp__grid">
           <h1 className="lp__display">
