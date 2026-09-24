@@ -4,6 +4,7 @@ import { getCurrentUser, readUserApiKey } from "@/lib/auth/dal";
 import { resolveModel } from "@/lib/llm/models";
 import { hasEnvCredentials } from "@/lib/llm/client";
 import { ApiKeyForm } from "./ApiKeyForm";
+import { AssessmentsSection } from "./AssessmentsSection";
 import { CostsSection } from "./CostsSection";
 import { ModelForm } from "./ModelForm";
 import { PasswordForm } from "./PasswordForm";
@@ -44,6 +45,8 @@ export default async function KontoPage() {
       </section>
 
       <CostsSection userId={user.id} />
+
+      <AssessmentsSection userId={user.id} />
 
       <section aria-labelledby="password-heading" className="rounded-xl border border-border bg-surface p-5">
         <h2 id="password-heading" className="text-lg font-semibold">

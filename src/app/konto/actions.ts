@@ -7,10 +7,12 @@ import { setSessionCookie } from "@/lib/auth/cookies";
 import { encryptSecret, keyHint } from "@/lib/auth/crypto";
 import { getCurrentUser, readUserApiKey } from "@/lib/auth/dal";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { ApiKeySchema, ChangePasswordSchema, fieldErrorsOf, formString, ModelSchema, type FormState } from "@/lib/auth/schemas";
+import { ApiKeySchema, BalanceSchema, ChangePasswordSchema, fieldErrorsOf, formString, ModelSchema, type FormState } from "@/lib/auth/schemas";
 import { createSession, deleteSessionsForUser } from "@/lib/auth/session";
 import { clearApiKey, findUserWithHashById, setApiKey, setModel, updatePasswordHash, type User } from "@/lib/auth/users";
+import { clearBalance, setBalance } from "@/lib/costs/balance";
 import { getDb } from "@/lib/db";
+import { deleteAssessment as deleteStoredAssessment } from "@/lib/llm/assessments";
 import { hasEnvCredentials, resolveModel, toLlmError } from "@/lib/llm/client";
 
 async function userOrRedirect(): Promise<User> {
@@ -67,6 +69,30 @@ export async function saveModel(_prev: FormState | undefined, formData: FormData
   setModel(getDb(), user.id, parsed.data.model || null);
   revalidatePath("/konto");
   return { ok: true, message: parsed.data.model ? `Modell „${parsed.data.model}“ gespeichert.` : "Es gilt wieder die Server-Vorgabe." };
+}
+
+export async function saveBalance(_prev: FormState | undefined, formData: FormData): Promise<FormState> {
+  const user = await userOrRedirect();
+  const amount = formString(formData, "amount");
+  const parsed = BalanceSchema.safeParse({ amount, asOf: formString(formData, "asOf") });
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values: { amount } };
+  setBalance(getDb(), user.id, parsed.data.amount, parsed.data.asOf);
+  revalidatePath("/konto");
+  return { ok: true, message: "Das Guthaben wurde gespeichert." };
+}
+
+export async function deleteBalance(): Promise<FormState> {
+  const user = await userOrRedirect();
+  clearBalance(getDb(), user.id);
+  revalidatePath("/konto");
+  return { ok: true, message: "Das Guthaben wurde entfernt." };
+}
+
+export async function deleteAssessment(formData: FormData): Promise<void> {
+  const user = await userOrRedirect();
+  const id = formString(formData, "id");
+  if (id) deleteStoredAssessment(getDb(), user.id, id);
+  revalidatePath("/konto");
 }
 
 export async function changePassword(_prev: FormState | undefined, formData: FormData): Promise<FormState> {

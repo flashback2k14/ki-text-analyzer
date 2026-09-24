@@ -10,6 +10,7 @@ import { getDb } from "@/lib/db";
 import type { RunUsage } from "@/lib/client-types";
 import { createClient, LlmError, resolveModel, toLlmError } from "@/lib/llm/client";
 import { MODEL_ID_PATTERN } from "@/lib/llm/models";
+import { saveAssessment } from "@/lib/llm/assessments";
 import { assessDocument, suggestAlternatives, type SuggestItem } from "@/lib/llm/suggest";
 
 export const dynamic = "force-dynamic";
@@ -71,15 +72,25 @@ export async function POST(request: Request) {
   // Jeden erfolgreichen Teil buchen, auch wenn der andere gescheitert ist.
   let tokens: UsageTotals = EMPTY_USAGE;
   let costUsd: number | null = price ? 0 : null;
-  const book = (purpose: "suggest" | "assess", usage: UsageTotals) => {
-    if (usage.requests === 0) return;
+  const book = (purpose: "suggest" | "assess", usage: UsageTotals): string | null => {
+    if (usage.requests === 0) return null;
     const cost = computeCostUsd(price, usage);
-    recordUsage(db, { userId: user.id, model, purpose, usage, costUsd: cost, fileName });
+    const id = recordUsage(db, { userId: user.id, model, purpose, usage, costUsd: cost, fileName });
     tokens = addUsage(tokens, usage);
     if (cost !== null && costUsd !== null) costUsd += cost;
+    return id;
   };
   if (suggestResult.status === "fulfilled") book("suggest", suggestResult.value.usage);
-  if (assessResult.status === "fulfilled" && assessResult.value) book("assess", assessResult.value.usage);
+  // Die Einschätzung wird dauerhaft gespeichert, damit sie im Konto wieder aufrufbar ist.
+  let assessmentId: string | null = null;
+  if (assessResult.status === "fulfilled" && assessResult.value) {
+    const usageId = book("assess", assessResult.value.usage);
+    try {
+      assessmentId = saveAssessment(db, { userId: user.id, usageId, model, fileName, assessment: assessResult.value.assessment });
+    } catch (err) {
+      console.error("[ki-text-analyzer] Einschätzung konnte nicht gespeichert werden:", err);
+    }
+  }
 
   const toResponseError = (err: unknown) => {
     const llmErr = err instanceof LlmError ? err : toLlmError(err, model);
@@ -106,6 +117,7 @@ export async function POST(request: Request) {
     model,
     suggestions: Object.fromEntries(suggestResult.value.suggestions),
     assessment: assessResult.status === "fulfilled" ? (assessResult.value?.assessment ?? null) : null,
+    assessmentId,
     assessmentError: assessResult.status === "rejected" ? `Die Gesamteinschätzung ist fehlgeschlagen: ${toResponseError(assessResult.reason).message}` : undefined,
     usage,
   });

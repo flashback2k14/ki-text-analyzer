@@ -19,6 +19,8 @@ export interface SuggestResponse {
   model: string;
   suggestions: Record<string, Suggestion>;
   assessment: (Assessment & { truncated: boolean }) | null;
+  /** ID der gespeicherten Einschätzung, null wenn keine erstellt oder das Speichern fehlschlug. */
+  assessmentId: string | null;
   assessmentError?: string;
   usage: RunUsage;
 }
